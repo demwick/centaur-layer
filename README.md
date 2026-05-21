@@ -62,13 +62,14 @@ Intentional challenge variants are powerful, but trust-sensitive. The first vers
 
 ## Install Locally
 
-From this repository:
+Add this repository as a local Codex plugin marketplace, then install the plugin:
 
 ```bash
-codex plugin install .
+codex plugin list --marketplace demirel-local
+codex plugin add centaur-layer --marketplace demirel-local
 ```
 
-Or load it from a local marketplace entry once published.
+In this workspace, `demirel-local` points at `/Users/demirel/Projects/software-engineer-agents`, whose marketplace file exposes `centaur-layer` through `plugins/centaur-layer`.
 
 ## First Use
 

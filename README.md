@@ -16,12 +16,14 @@ The name and design philosophy come from two places.
 
 **Garry Kasparov — Centaur Chess.** After losing to Deep Blue in 1997, Kasparov did not retreat from machines. He invented "Advanced Chess" (later called *centaur chess*): a human player paired with a chess engine. The interesting finding from years of centaur tournaments was that **a strong human + a weak machine + a good process consistently beat both grandmasters and supercomputers playing alone**. The process — the human's questions, doubts, and judgment over the machine's suggestions — was the moat, not raw computation.
 
-**Barış Özcan — "AI ile Düşünmek" (Thinking With AI).** Özcan's video essay frames two modes of working with AI: the **Cyborg** and the **Centaur**.
+**Barış Özcan — "Are you using AI, or is it using you?".** In his video essay *(Sen mi Yapay Zeka Kullanıyorsun? Yoksa O mu Seni?)*, Özcan frames two modes of working with AI: the **Cyborg** and the **Centaur**.
 
 - The **Cyborg** fuses with the tool. Speed feels great. But over time the human's reasoning atrophies — the cognitive muscles you stop using get weaker. One day you realize you cannot architect, debug, or even *evaluate* the model's output without it. You have fallen asleep at the wheel.
 - The **Centaur** stays a distinct rider. The machine carries velocity, the human carries judgment. They are partners, not one organism. The Centaur stays sharp because they keep doing the parts that matter — defining intent, naming risk, owning the final call.
 
-Centaur Layer is engineering scaffolding for staying the Centaur:
+**The Core Problem: Review Risk.** AI coding assistants do not only introduce code risk; they introduce *review risk*. The developer may stop tracing assumptions, edge cases, and ownership boundaries. The diff still gets merged. The bug shows up three weeks later in a domain no one re-read.
+
+Centaur Layer is engineering scaffolding for staying the Centaur and mitigating review risk:
 
 - contracts make the boundary between rider and horse explicit
 - risk signals refuse to let dependency or auth changes slip through unreviewed
@@ -262,22 +264,6 @@ Copy `templates/github-action.yml` to `.github/workflows/centaur-check.yml` to g
 | `CENTAUR_METRICS_DISABLED` | all scripts | unset | Set to `1` to suppress writes to `.centaur/metrics.jsonl`. |
 | `CENTAUR_PLUGIN_ROOT` | pre-commit hook template | unset | Tells the hook where to find `scripts/centaur-check.sh` outside the Codex env. |
 | `CODEX_PLUGIN_ROOT` | skill files | set by Codex | Skill commands resolve script paths against this. |
-
----
-
-## Why This Exists
-
-AI coding assistants do not only introduce code risk. They introduce **review risk**: the developer may stop tracing assumptions, edge cases, and ownership boundaries. The diff still gets merged. The bug shows up three weeks later in a domain no one re-read.
-
-Centaur Layer is designed to keep that reasoning loop alive without becoming review theater:
-
-- contracts before work starts
-- deterministic risk signals before code is accepted
-- short comprehension checks instead of performative ceremony
-- verification evidence before success is reported
-- synthetic drills only — never deliberate defects in real project files
-
-If a check feels like ceremony, it is the wrong check. The risk rubric exists to keep `low` actually low.
 
 ---
 

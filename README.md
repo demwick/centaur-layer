@@ -1,16 +1,139 @@
 # Centaur Layer
 
-> A reasoning-preservation layer for AI-assisted software development.
+> Keep human judgment active while coding with AI.
 
-Centaur Layer helps developers use AI coding assistants without surrendering architectural judgment, code review discipline, or debugging skill. It turns AI from an autopilot into a training partner: fast where speed helps, interruptive where human reasoning must stay awake.
+![Centaur Layer social preview](docs/assets/social-preview.png)
 
-## What It Is
+Centaur Layer is a reasoning-preservation layer for AI-assisted software development. It helps developers use AI coding assistants without surrendering architectural judgment, code review discipline, or debugging skill.
 
-Centaur Layer is a Codex plugin that adds a lightweight coaching and governance layer above AI coding workflows.
+AI coding agents make implementation faster. Centaur Layer focuses on the quieter failure mode: accepting generated code without understanding its risk.
 
-It is designed around one idea:
+## Status
+
+Public preview / local MVP.
+
+Centaur Layer is currently a local Codex plugin with deterministic shell scripts and skill instructions. It is ready for experimentation, feedback, and small-team trials, but it is not an enterprise governance platform.
+
+## What It Does
+
+Centaur Layer adds a lightweight coaching and review layer around AI coding workflows:
+
+- **Centaur Contract** defines what the human owns, what AI may do, and which changes require explicit confirmation.
+- **Centaur Check** reviews the current diff, reports deterministic risk signals, and prompts short comprehension checks before acceptance.
+- **Centaur Coach** uses Socratic debugging instead of immediately pasting the final answer.
+- **Centaur Health** audits structural readiness for AI-assisted development: policy, context, verification commands, guardrails, and git state.
+- **Centaur Drill** runs synthetic review exercises without writing defects into real project files.
+
+The guiding rule:
 
 > AI may accelerate implementation, but the human keeps ownership of intent, tradeoffs, risk, and final judgment.
+
+## Quick Demo
+
+Dependency changes are treated as high-risk unless they include enough verification evidence:
+
+```text
+CENTAUR CHECK: high
+
+Modified files:
+- package.json
+
+Risk reasons:
+- dependency or build metadata changed: package.json
+- dependency metadata changed without lockfile evidence
+
+Diff signals:
+- files_changed: 1
+- dependency_manifest_changed: yes
+- lockfile_evidence: no
+- test_runner: detected
+
+Questions:
+- What behavior is intended to change, and what must remain unchanged?
+- Which command proves this change is safe enough to accept?
+- Which edge case would be most expensive to miss here?
+```
+
+Small documentation changes stay low-friction:
+
+```text
+CENTAUR CHECK: low
+
+Modified files:
+- README.md
+
+Diff signals:
+- files_changed: 1
+- docs_files_changed: yes
+- dependency_manifest_changed: no
+
+Recommendation:
+- Accept only after the questions above have clear answers.
+```
+
+## Install Locally
+
+Install from a local Codex plugin marketplace that points at this repository:
+
+```bash
+codex plugin list --marketplace <your-local-marketplace>
+codex plugin add centaur-layer --marketplace <your-local-marketplace>
+```
+
+For direct script testing from a clone:
+
+```bash
+git clone https://github.com/demwick/centaur-layer.git
+cd centaur-layer
+bash scripts/validate-plugin.sh
+```
+
+## First Use
+
+Initialize Centaur state in a target repository:
+
+```bash
+bash /path/to/centaur-layer/scripts/centaur-init.sh /path/to/target-repo
+```
+
+This creates:
+
+- `.centaur/contract.md`
+- `.centaur/README.md`
+- `CLAUDE.md`
+- `.gitignore` entries for local runtime state
+
+Commit initialization separately from product changes:
+
+```bash
+cd /path/to/target-repo
+git add .centaur .gitignore CLAUDE.md
+git commit -m "chore: initialize centaur"
+```
+
+Then use the plugin skills:
+
+```text
+Use centaur-contract before implementing the next feature.
+Use centaur-check on the current diff.
+Use centaur-coach to debug this failing test.
+Use centaur-health to audit AI-readiness.
+Use centaur-drill for a synthetic review drill.
+```
+
+## Why This Exists
+
+AI coding assistants do not only introduce code risk. They also introduce review risk: the developer may stop tracing assumptions, edge cases, and ownership boundaries.
+
+Centaur Layer is designed to keep that reasoning loop alive:
+
+- contracts before work starts
+- deterministic risk signals before code is accepted
+- short comprehension checks instead of performative review ceremony
+- verification evidence before success is reported
+- synthetic drills only, never deliberate defects written into real code
+
+Deliberate defect drills should be opt-in, sandbox-only, and never written into production project files.
 
 ## Relationship To Other Projects
 
@@ -25,78 +148,7 @@ It borrows proven ideas from two companion projects without requiring users to i
 
 If a project already has `.claude/` charter files or `.sea/` state, Centaur can read and respect them. They are optional integrations, not required dependencies.
 
-## Core Modes
-
-### Centaur Contract
-
-Defines the human/AI division of responsibility before work begins.
-
-Examples:
-
-- human owns architecture and data model decisions
-- AI may implement UI and tests inside approved paths
-- schema migrations require explicit approval
-- high-risk diffs require a comprehension check before acceptance
-
-### Centaur Check
-
-Reviews the current diff and asks short reasoning questions before the user accepts AI-generated work.
-
-Examples:
-
-- What is the highest-risk edge case in this change?
-- Which test should fail if this implementation is wrong?
-- What assumption does this code make about external input?
-
-### Centaur Coach
-
-Uses a Socratic debugging style. Instead of pasting the final fix immediately, it guides the developer through observations, hypotheses, and verification.
-
-### Centaur Health
-
-Audits whether the project has enough policy, context, guardrails, tests, and review discipline to use AI safely.
-
-## Why Not Start With Deliberate Bug Injection?
-
-Intentional challenge variants are powerful, but trust-sensitive. The first version uses safe comprehension checks over real diffs. Deliberate defect drills should be opt-in, sandbox-only, and never written to disk.
-
-## Install Locally
-
-Add this repository as a local Codex plugin marketplace, then install the plugin:
-
-```bash
-codex plugin list --marketplace demirel-local
-codex plugin add centaur-layer --marketplace demirel-local
-```
-
-In this workspace, `demirel-local` points at `/Users/demirel/Projects/software-engineer-agents`, whose marketplace file exposes `centaur-layer` through `plugins/centaur-layer`.
-
-## First Use
-
-Initialize Centaur state in a target repository:
-
-```bash
-bash /path/to/centaur-layer/scripts/centaur-init.sh /path/to/target-repo
-```
-
-This creates `.centaur/contract.md`, `.centaur/README.md`, a minimal `CLAUDE.md`, and runtime ignores in `.gitignore`.
-
-Then use the plugin skills:
-
-```text
-Use centaur-init in this repo.
-Use centaur-contract before implementing the next feature.
-Use centaur-check on the current diff.
-Use centaur-coach to debug this failing test.
-Use centaur-health to audit AI-readiness.
-Use centaur-drill for a synthetic review drill.
-```
-
-For a concrete contract shape, see `examples/contracts/web-feature.md`.
-
-## Project Status
-
-Local MVP in progress. The repository now has deterministic scripts for initialization, health checks, diff risk checks, and synthetic review drills. The plugin skills wrap those scripts with coaching-oriented behavior and next-action guidance.
+## Validation
 
 Validate the local plugin structure with:
 
@@ -104,11 +156,16 @@ Validate the local plugin structure with:
 bash scripts/validate-plugin.sh
 ```
 
-The validation command also smoke-tests `centaur-init`, `centaur-health`, and `centaur-check` in temporary git repositories.
+The validation command smoke-tests `centaur-init`, `centaur-health`, `centaur-check`, and `centaur-drill` in temporary git repositories.
 
-## Near-Term Roadmap
+## Roadmap
 
-1. Exercise the plugin inside a real Codex session against a throwaway app.
-2. Improve `centaur-contract` so it can update the Active Contract section safely.
-3. Add richer diff parsing once the current file-path heuristics prove useful.
-4. Keep training drills synthetic-only until there is a trusted IDE preview flow.
+- Exercise the plugin inside real Codex sessions against throwaway apps.
+- Improve `centaur-contract` so it can update the Active Contract section safely.
+- Add richer diff parsing once file-path heuristics prove useful.
+- Explore JSON output for agent-friendly integrations.
+- Keep training drills synthetic-only until there is a trusted IDE preview flow.
+
+## License
+
+MIT

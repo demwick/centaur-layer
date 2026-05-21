@@ -86,13 +86,14 @@ Use centaur-contract before implementing the next feature.
 Use centaur-check on the current diff.
 Use centaur-coach to debug this failing test.
 Use centaur-health to audit AI-readiness.
+Use centaur-drill for a synthetic review drill.
 ```
 
 For a concrete contract shape, see `examples/contracts/web-feature.md`.
 
 ## Project Status
 
-MVP scaffold. The first goal is a usable local plugin with contract creation, diff comprehension checks, Socratic coaching, and health audit prompts.
+Local MVP in progress. The repository now has deterministic scripts for initialization, health checks, diff risk checks, and synthetic review drills. The plugin skills wrap those scripts with coaching-oriented behavior.
 
 Validate the local plugin structure with:
 
@@ -104,7 +105,7 @@ The validation command also smoke-tests `centaur-init`, `centaur-health`, and `c
 
 ## Near-Term Roadmap
 
-1. Make `centaur-init` create a useful `.centaur/contract.md` in real repos.
-2. Make `centaur-check` produce risk-specific questions from actual diffs.
-3. Add optional detection for `.claude/` charter policy and `.sea/` execution state.
-4. Add an opt-in training drill mode that uses synthetic diffs only.
+1. Exercise the plugin inside a real Codex session against a throwaway app.
+2. Improve `centaur-contract` so it can update the Active Contract section safely.
+3. Add richer diff parsing once the current file-path heuristics prove useful.
+4. Keep training drills synthetic-only until there is a trusted IDE preview flow.

@@ -29,7 +29,9 @@ assert_contains() {
 
 tmpdirs=()
 cleanup() {
-  for dir in "${tmpdirs[@]:-}"; do
+  [ "${#tmpdirs[@]}" -eq 0 ] && return 0
+  for dir in "${tmpdirs[@]}"; do
+    [ -n "$dir" ] || continue
     rm -rf "$dir"
   done
 }
@@ -151,5 +153,25 @@ git -C "$high" -c user.name=Centaur -c user.email=centaur@example.com commit -q 
 printf '{"scripts":{"test":"echo ok"},"dependencies":{"left-pad":"1.3.0"}}\n' > "$high/package.json"
 high_out="$(bash scripts/centaur-check.sh "$high")"
 assert_contains "centaur-check detects high risk" "$high_out" "CENTAUR CHECK: high"
+
+invalid_contract="$(mktemp_repo)"
+bash scripts/centaur-init.sh "$invalid_contract" >/dev/null
+printf '# Broken\n' > "$invalid_contract/.centaur/contract.md"
+invalid_out="$(bash scripts/centaur-health.sh "$invalid_contract")"
+assert_contains "centaur-health detects invalid contract" "$invalid_out" "Restore required sections"
+
+integrated="$(mktemp_repo)"
+mkdir -p "$integrated/.claude/knowledge/charter" "$integrated/.claude/hooks" "$integrated/.sea"
+printf '# Policy\n' > "$integrated/.claude/knowledge/charter/principles.md"
+printf '{"hooks":{}}\n' > "$integrated/.claude/hooks/hooks.json"
+bash scripts/centaur-init.sh "$integrated" >/dev/null
+integration_out="$(bash scripts/centaur-health.sh "$integrated")"
+assert_contains "centaur-health detects charter policy" "$integration_out" "policy: present"
+assert_contains "centaur-health detects guardrails" "$integration_out" "guardrails: detected"
+assert_contains "centaur-health detects sea" "$integration_out" "sea: detected"
+
+drill_out="$(bash scripts/centaur-drill.sh boundary)"
+assert_contains "centaur-drill is synthetic" "$drill_out" "mode: synthetic-only"
+assert_contains "centaur-drill does not write files" "$drill_out" "writes_files: no"
 
 printf '\n%d checks passed\n' "$pass"

@@ -35,3 +35,7 @@ Before AI-generated work is accepted, Centaur Layer helps answer:
 - team metrics dashboard
 - IDE extension integration
 - policy pack marketplace
+
+## Training Drill Safety
+
+Training drills use synthetic snippets only. They must not edit real project files, produce patches, or masquerade as production suggestions.

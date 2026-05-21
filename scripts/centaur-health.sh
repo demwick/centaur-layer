@@ -106,3 +106,5 @@ else
     [ "$count" -ge 3 ] && break
   done
 fi
+
+exit 0

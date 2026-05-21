@@ -58,6 +58,12 @@ if [ -f ".centaur/contract.md" ]; then
       reasons+=("contract requires confirmation for dependency changes")
     fi
   fi
+  if grep -qiE 'auth|permission|secret|billing|schema|migration' .centaur/contract.md; then
+    if printf '%s\n' "$files" | grep -qiE 'auth|permission|secret|billing|schema|migration'; then
+      risk="high"
+      reasons+=("contract marks this domain as confirmation-sensitive")
+    fi
+  fi
 fi
 
 printf 'CENTAUR CHECK: %s\n' "$risk"
@@ -103,3 +109,5 @@ if [ "$risk" = "high" ]; then
 else
   printf -- '- Accept only after the questions above have clear answers.\n'
 fi
+
+exit 0

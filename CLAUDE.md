@@ -22,11 +22,7 @@ Keep the product centered on one promise: AI can accelerate coding without weake
 Run:
 
 ```bash
-python3 -m json.tool .codex-plugin/plugin.json >/dev/null
-
-for f in skills/*/SKILL.md; do
-  head -1 "$f" | grep -q '^---$'
-done
+bash scripts/validate-plugin.sh
 ```
 
 Manual testing guidance lives in `TESTING.md`.

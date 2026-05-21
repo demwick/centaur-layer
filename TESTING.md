@@ -14,6 +14,7 @@ Manual smoke test:
 4. Make a small diff.
 5. Run `centaur-check` and confirm it asks diff-specific questions.
 6. Run `centaur-health` and confirm it reports concrete missing guardrails.
+7. Run `centaur-drill` and confirm it uses synthetic snippets only.
 
 Deterministic script smoke tests:
 
@@ -22,4 +23,5 @@ tmp="$(mktemp -d)"
 git -C "$tmp" init
 bash scripts/centaur-init.sh "$tmp"
 bash scripts/centaur-health.sh "$tmp"
+bash scripts/centaur-drill.sh boundary
 ```

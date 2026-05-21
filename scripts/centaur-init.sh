@@ -51,3 +51,5 @@ printf 'gitignore: %s\n' "$([ "$updated_gitignore" -eq 1 ] && printf updated || 
 printf 'integration.claude_charter: %s\n' "$charter"
 printf 'integration.sea: %s\n' "$sea"
 printf 'next: run centaur-contract to fill the Active Contract section\n'
+
+exit 0

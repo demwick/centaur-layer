@@ -12,7 +12,7 @@ Run a reasoning check on a diff before it is accepted.
 1. Run:
 
    ```bash
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-check.sh" .
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-check.sh" .
    ```
 
 2. Read the script output.

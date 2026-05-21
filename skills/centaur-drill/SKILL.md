@@ -13,9 +13,9 @@ Run a safe review drill.
 2. Run one of:
 
    ```bash
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-drill.sh" boundary
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-drill.sh" inverted-condition
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-drill.sh" null-handling
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-drill.sh" boundary
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-drill.sh" inverted-condition
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-drill.sh" null-handling
    ```
 
 3. Show the synthetic snippet and ask the user to identify the flaw.

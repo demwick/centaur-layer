@@ -46,7 +46,7 @@ mktemp_repo() {
 }
 
 python3 -m json.tool .codex-plugin/plugin.json >/dev/null
-ok "plugin.json parses"
+ok "codex plugin.json parses"
 
 python3 - <<'PY'
 import json
@@ -66,7 +66,77 @@ for key in ["displayName", "shortDescription", "category", "capabilities"]:
     if key not in interface:
         raise SystemExit(f"missing interface.{key}")
 PY
-ok "plugin.json has required fields"
+ok "codex plugin.json has required fields"
+
+python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+ok "claude-code plugin.json parses"
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+data = json.loads(Path(".claude-plugin/plugin.json").read_text())
+required = ["name", "version", "description"]
+missing = [key for key in required if key not in data]
+if missing:
+    raise SystemExit(f"missing manifest keys: {', '.join(missing)}")
+if data["name"] != "centaur-layer":
+    raise SystemExit("manifest name must be centaur-layer")
+PY
+ok "claude-code plugin.json has required fields"
+
+python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
+ok "codex marketplace.json parses"
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+data = json.loads(Path(".agents/plugins/marketplace.json").read_text())
+for key in ["name", "plugins"]:
+    if key not in data:
+        raise SystemExit(f"codex marketplace.json missing key: {key}")
+plugins = data["plugins"]
+if not isinstance(plugins, list) or not plugins:
+    raise SystemExit("codex marketplace.json must list at least one plugin")
+entry = plugins[0]
+for key in ["name", "source"]:
+    if key not in entry:
+        raise SystemExit(f"codex plugin entry missing key: {key}")
+if entry["name"] != "centaur-layer":
+    raise SystemExit("codex plugin entry name must be centaur-layer")
+src = entry["source"]
+if not isinstance(src, dict) or src.get("source") != "local" or "path" not in src:
+    raise SystemExit("codex plugin source must be {source: local, path: ...}")
+PY
+ok "codex marketplace.json has required fields"
+
+python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+ok "claude-code marketplace.json parses"
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+data = json.loads(Path(".claude-plugin/marketplace.json").read_text())
+for key in ["name", "owner", "plugins"]:
+    if key not in data:
+        raise SystemExit(f"marketplace.json missing key: {key}")
+plugins = data["plugins"]
+if not isinstance(plugins, list) or not plugins:
+    raise SystemExit("marketplace.json must list at least one plugin")
+entry = plugins[0]
+for key in ["name", "source"]:
+    if key not in entry:
+        raise SystemExit(f"plugin entry missing key: {key}")
+if entry["name"] != "centaur-layer":
+    raise SystemExit("plugin entry name must be centaur-layer")
+PY
+ok "claude-code marketplace.json has required fields"
+
+[ -f .claude-plugin/plugin.json ] || fail "missing .claude-plugin/plugin.json"
+[ -d skills ] || fail "missing skills/ at repo root (required for claude-code plugin layout)"
+ok "claude-code plugin layout present"
 
 skill_count=0
 for skill in skills/*/SKILL.md; do

@@ -18,7 +18,7 @@ Summarize local Centaur usage so the human can see whether the review and drill 
 Run:
 
 ```bash
-bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-stats.sh" . --days 7
+bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-stats.sh" . --days 7
 ```
 
 Then:

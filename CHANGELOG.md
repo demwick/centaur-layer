@@ -4,6 +4,21 @@
 
 ### Added
 
+- **Claude Code plugin support.** Ship `.claude-plugin/plugin.json` and
+  `.claude-plugin/marketplace.json` so the same repo installs as a Claude
+  Code plugin (`/plugin marketplace add` + `/plugin install
+  centaur-layer@centaur-layer`) without losing the existing Codex plugin
+  path. SKILL files now resolve the plugin root via
+  `${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}`, so the same skill
+  works in either CLI. `scripts/validate-plugin.sh` validates both
+  manifests.
+- **Codex one-line install.** Ship `.agents/plugins/marketplace.json` so
+  Codex users can install via the GitHub shorthand
+  (`codex plugin marketplace add demwick/centaur-layer` +
+  `codex plugin add centaur-layer@centaur-layer`) instead of having to
+  clone first and pass `--marketplace`.
+
+
 - `centaur-stats` skill and `scripts/centaur-stats.sh` — summarize local
   Centaur usage (checks, drills, health audits, init events) over a
   configurable window (default 7 days).

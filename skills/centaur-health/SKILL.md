@@ -12,7 +12,7 @@ Audit structural AI-readiness for the current repository.
 Run:
 
 ```bash
-bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-health.sh" .
+bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-health.sh" .
 ```
 
 Then use the script output as the evidence base. The script inspects:

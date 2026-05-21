@@ -1,0 +1,19 @@
+{
+  "name": "centaur-layer",
+  "version": "0.2.0",
+  "description": "A reasoning-preservation layer for AI-assisted software development. Contracts, diff-risk checks, Socratic debugging, and AI-readiness audits — keep the human in the loop on intent, tradeoffs, and risk.",
+  "author": {
+    "name": "Demirel"
+  },
+  "homepage": "https://github.com/demwick/centaur-layer",
+  "repository": "https://github.com/demwick/centaur-layer",
+  "license": "MIT",
+  "keywords": [
+    "ai-coding",
+    "software-engineering",
+    "developer-tools",
+    "reasoning",
+    "code-review",
+    "guardrails"
+  ]
+}

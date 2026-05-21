@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This repository contains the Centaur Layer Codex plugin.
+This repository contains the Centaur Layer plugin (ships as both a Codex plugin and a Claude Code plugin from the same source).
 
 ## Product Direction
 

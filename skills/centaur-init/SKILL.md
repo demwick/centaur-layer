@@ -13,7 +13,7 @@ Initialize Centaur Layer for the current repository.
 2. Run:
 
    ```bash
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-init.sh" .
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-init.sh" .
    ```
 
 3. Read the script output.

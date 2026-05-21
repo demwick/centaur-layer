@@ -114,7 +114,7 @@ The same script powers the local pre-commit hook and the bundled GitHub Action �
 
 Centaur Layer is intentionally low-dependency. You need:
 
-- **Codex CLI** — Centaur Layer is distributed as a Codex plugin. Skill invocations (`centaur-check`, `centaur-contract`, etc.) are handled by the Codex CLI. Without Codex you can still run the underlying shell scripts directly (see *Direct Script Use* below), but you lose the conversational skill layer.
+- **A skill-capable CLI** — Centaur Layer is shipped as both a **Codex plugin** and a **Claude Code plugin**. Either CLI can invoke the skills (`centaur-check`, `centaur-contract`, etc.) conversationally. Without one of them you can still run the underlying shell scripts directly (see *Direct Script Use* below), but you lose the skill layer.
 - **bash** ≥ 4 (the scripts assume `set -euo pipefail`, arrays, and `<<<`)
 - **git** — required by `centaur-check` and `centaur-health`; both refuse to run useful work outside a git worktree
 - **python3** — only used by `scripts/validate-plugin.sh` for JSON manifest validation
@@ -126,19 +126,56 @@ No network access is required at runtime. No telemetry is sent anywhere — metr
 
 ## Install
 
-### As a Codex plugin (recommended)
+Centaur Layer ships with two plugin manifests in the same repo:
 
-Centaur Layer ships as a local Codex plugin. The most reliable path today is a local marketplace pointing at a clone of this repo:
+- `.codex-plugin/plugin.json` — Codex CLI
+- `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` — Claude Code CLI
+
+Skills are identical across both. Internally the skills resolve their script path against `${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}`, so whichever CLI is running, paths just work.
+
+### As a Codex plugin
+
+Remote install via the GitHub shorthand:
 
 ```bash
-git clone https://github.com/demwick/centaur-layer.git ~/.centaur/plugin
-codex plugin add centaur-layer --marketplace ~/.centaur/plugin
+codex plugin marketplace add demwick/centaur-layer
+codex plugin add centaur-layer@centaur-layer
 codex plugin list
 ```
 
-Once installed, Codex exposes the skills (`centaur-init`, `centaur-check`, …) and resolves `${CODEX_PLUGIN_ROOT}` to the plugin path automatically.
+Or, from a local clone:
 
-### Direct script use (no Codex)
+```bash
+git clone https://github.com/demwick/centaur-layer.git ~/.centaur/plugin
+codex plugin marketplace add ~/.centaur/plugin
+codex plugin add centaur-layer@centaur-layer
+```
+
+Codex exposes the skills (`centaur-init`, `centaur-check`, …) and sets `${CODEX_PLUGIN_ROOT}` to the plugin path.
+
+### As a Claude Code plugin
+
+The repo is its own single-plugin marketplace. Inside a Claude Code session:
+
+```text
+/plugin marketplace add demwick/centaur-layer
+/plugin install centaur-layer@centaur-layer
+```
+
+Or, from a local clone:
+
+```bash
+git clone https://github.com/demwick/centaur-layer.git ~/.centaur/plugin
+```
+
+```text
+/plugin marketplace add ~/.centaur/plugin
+/plugin install centaur-layer@centaur-layer
+```
+
+Claude Code sets `${CLAUDE_PLUGIN_ROOT}` to the plugin path and exposes the same skills.
+
+### Direct script use (no CLI)
 
 Every skill is a thin wrapper around a deterministic script. You can run the scripts straight from a clone — useful for CI, hooks, or sanity-checking the plugin:
 
@@ -262,8 +299,9 @@ Copy `templates/github-action.yml` to `.github/workflows/centaur-check.yml` to g
 | `CENTAUR_FAIL_ON` | `centaur-check`, pre-commit hook, GitHub Action | `high` | Exit non-zero at this risk level or above. Values: `none`, `low`, `medium`, `high`. |
 | `CENTAUR_AST` | `centaur-check` | `0` | Set to `1` to default-enable AST-confirmed sensitive-domain checks (same as `--ast`). |
 | `CENTAUR_METRICS_DISABLED` | all scripts | unset | Set to `1` to suppress writes to `.centaur/metrics.jsonl`. |
-| `CENTAUR_PLUGIN_ROOT` | pre-commit hook template | unset | Tells the hook where to find `scripts/centaur-check.sh` outside the Codex env. |
-| `CODEX_PLUGIN_ROOT` | skill files | set by Codex | Skill commands resolve script paths against this. |
+| `CENTAUR_PLUGIN_ROOT` | pre-commit hook template | unset | Tells the hook where to find `scripts/centaur-check.sh` outside a CLI session. |
+| `CLAUDE_PLUGIN_ROOT` | skill files | set by Claude Code | Skill commands resolve script paths against this first. |
+| `CODEX_PLUGIN_ROOT` | skill files | set by Codex | Fallback when `CLAUDE_PLUGIN_ROOT` is unset. |
 
 ---
 

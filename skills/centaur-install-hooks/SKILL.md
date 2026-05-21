@@ -19,7 +19,7 @@ Wire Centaur Layer into the local git workflow so the human doesn't have to reme
 2. Run:
 
    ```bash
-   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-install-hooks.sh" .
+   bash "${CLAUDE_PLUGIN_ROOT:-${CODEX_PLUGIN_ROOT:-.}}/scripts/centaur-install-hooks.sh" .
    ```
 
 3. Read the script output.

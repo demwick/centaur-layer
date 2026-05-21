@@ -1,0 +1,27 @@
+{
+  "name": "centaur-layer",
+  "owner": {
+    "name": "Demirel",
+    "url": "https://github.com/demwick"
+  },
+  "plugins": [
+    {
+      "name": "centaur-layer",
+      "source": ".",
+      "description": "Keep human judgment active while coding with AI. Contracts, diff-risk checks, Socratic debugging, and AI-readiness audits.",
+      "version": "0.2.0",
+      "homepage": "https://github.com/demwick/centaur-layer",
+      "license": "MIT",
+      "category": "code-review",
+      "keywords": [
+        "ai-coding",
+        "code-review",
+        "guardrails",
+        "reasoning"
+      ],
+      "author": {
+        "name": "Demirel"
+      }
+    }
+  ]
+}

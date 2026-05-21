@@ -42,7 +42,7 @@ for pattern in ".centaur/metrics.jsonl" ".centaur/session.json"; do
 done
 
 charter="absent"
-if [ -f "$TARGET_DIR/CLAUDE.md" ] || [ -d "$TARGET_DIR/.claude" ]; then
+if [ -d "$TARGET_DIR/.claude/knowledge/charter" ] || [ -d "$TARGET_DIR/.claude" ]; then
   charter="detected"
 fi
 

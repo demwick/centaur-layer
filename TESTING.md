@@ -12,8 +12,8 @@ Manual smoke test:
 2. Run `centaur-init`.
 3. Confirm `.centaur/contract.md`, `.centaur/README.md`, `CLAUDE.md`, and `.gitignore` exist.
 4. Make a small diff.
-5. Run `centaur-check` and confirm it asks diff-specific questions.
-6. Run `centaur-health` and confirm it reports concrete missing guardrails.
+5. Run `centaur-check` and confirm it reports deterministic diff-specific signals; the skill layer may add one concrete question from the actual diff.
+6. Run `centaur-health` and confirm it separates file presence from Centaur policy, verification command, and guardrail signals.
 7. Run `centaur-drill` and confirm it uses synthetic snippets only.
 
 Deterministic script smoke tests:

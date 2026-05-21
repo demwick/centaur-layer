@@ -71,10 +71,14 @@ fi
 
 risk="low"
 reasons=()
+signals=()
 setup_count=0
 product_count=0
 dependency_manifest_changed=0
 lockfile_evidence=0
+test_file_changed=0
+docs_file_changed=0
+sensitive_domain_changed=0
 
 while IFS= read -r file; do
   [ -n "$file" ] || continue
@@ -91,16 +95,19 @@ while IFS= read -r file; do
   fi
   case "$file" in
     *.md|docs/*|README.md|LICENSE)
+      docs_file_changed=1
       ;;
     package.json|package-lock.json|pnpm-lock.yaml|yarn.lock|bun.lock*|Cargo.toml|Cargo.lock|go.mod|go.sum|requirements*.txt|pyproject.toml)
       risk="high"
       reasons+=("dependency or build metadata changed: $file")
       ;;
     *auth*|*Auth*|*session*|*Session*|*permission*|*Permission*|*billing*|*Billing*|*secret*|*.env*|*schema*|*migration*)
+      sensitive_domain_changed=1
       risk="high"
       reasons+=("sensitive domain changed: $file")
       ;;
     *test*|tests/*|__tests__/*)
+      test_file_changed=1
       [ "$risk" = "low" ] && risk="low"
       ;;
     *)
@@ -128,6 +135,20 @@ file_count="$(printf '%s\n' "$files" | sed '/^$/d' | wc -l | tr -d ' ')"
 if [ "$file_count" -gt 3 ] && [ "$risk" != "high" ]; then
   risk="medium"
   reasons+=("diff touches more than three files")
+fi
+
+signals+=("files_changed: $file_count")
+[ "$setup_count" -gt 0 ] && signals+=("setup_files_changed: $setup_count") || signals+=("setup_files_changed: none")
+[ "$product_count" -gt 0 ] && signals+=("product_files_changed: $product_count") || signals+=("product_files_changed: none")
+[ "$docs_file_changed" -eq 1 ] && signals+=("docs_files_changed: yes") || signals+=("docs_files_changed: no")
+[ "$test_file_changed" -eq 1 ] && signals+=("test_files_changed: yes") || signals+=("test_files_changed: no")
+[ "$sensitive_domain_changed" -eq 1 ] && signals+=("sensitive_domain_changed: yes") || signals+=("sensitive_domain_changed: no")
+[ "$dependency_manifest_changed" -eq 1 ] && signals+=("dependency_manifest_changed: yes") || signals+=("dependency_manifest_changed: no")
+[ "$lockfile_evidence" -eq 1 ] && signals+=("lockfile_evidence: yes") || signals+=("lockfile_evidence: no")
+if has_test_runner; then
+  signals+=("test_runner: detected")
+else
+  signals+=("test_runner: missing")
 fi
 
 if [ -f ".centaur/contract.md" ]; then
@@ -175,6 +196,11 @@ else
     printf -- '- %s\n' "$reason"
   done
 fi
+
+printf '\nDiff signals:\n'
+for signal in "${signals[@]}"; do
+  printf -- '- %s\n' "$signal"
+done
 
 printf '\nQuestions:\n'
 case "$risk" in

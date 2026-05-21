@@ -124,6 +124,7 @@ grep -qxF ".centaur/metrics.jsonl" "$tmp/.gitignore" || fail "centaur-init did n
 grep -qxF ".centaur/session.json" "$tmp/.gitignore" || fail "centaur-init did not ignore session"
 assert_contains "centaur-init reports completion" "$init_out" "CENTAUR INIT: complete"
 assert_contains "centaur-init reports policy creation" "$init_out" "policy:"
+assert_contains "centaur-init does not report generated CLAUDE as charter" "$init_out" "integration.claude_charter: absent"
 
 printf '\nCUSTOM MARKER\n' >> "$tmp/.centaur/contract.md"
 bash scripts/centaur-init.sh "$tmp" >/dev/null
@@ -138,11 +139,19 @@ ok "centaur-init preserves existing CLAUDE.md"
 
 health_out="$(bash scripts/centaur-health.sh "$tmp")"
 assert_contains "centaur-health reports status" "$health_out" "CENTAUR HEALTH:"
+assert_contains "centaur-health detects policy file" "$health_out" "policy_file: present"
+assert_contains "centaur-health detects Centaur policy language" "$health_out" "centaur_policy: detected"
 assert_contains "centaur-health suggests next command" "$health_out" "Suggested next command:"
 
 risky="$(mktemp_repo)"
 risky_out="$(bash scripts/centaur-health.sh "$risky")"
 assert_contains "centaur-health detects risky repo" "$risky_out" "CENTAUR HEALTH: RISKY"
+
+plain_policy="$(mktemp_repo)"
+printf 'CUSTOM POLICY\n' > "$plain_policy/CLAUDE.md"
+plain_policy_out="$(bash scripts/centaur-health.sh "$plain_policy")"
+assert_contains "centaur-health detects plain policy file" "$plain_policy_out" "policy_file: present"
+assert_contains "centaur-health flags missing Centaur policy language" "$plain_policy_out" "centaur_policy: missing"
 
 low="$(mktemp_repo)"
 printf '# Demo\n' > "$low/README.md"
@@ -151,6 +160,8 @@ git -C "$low" -c user.name=Centaur -c user.email=centaur@example.com commit -q -
 printf '\nMore docs.\n' >> "$low/README.md"
 low_out="$(bash scripts/centaur-check.sh "$low")"
 assert_contains "centaur-check detects low risk" "$low_out" "CENTAUR CHECK: low"
+assert_contains "centaur-check reports diff signals" "$low_out" "Diff signals:"
+assert_contains "centaur-check detects docs signal" "$low_out" "docs_files_changed: yes"
 
 medium="$(mktemp_repo)"
 mkdir -p "$medium/src"
@@ -160,6 +171,7 @@ git -C "$medium" -c user.name=Centaur -c user.email=centaur@example.com commit -
 printf 'export function ok() { return false; }\n' > "$medium/src/app.js"
 medium_out="$(bash scripts/centaur-check.sh "$medium")"
 assert_contains "centaur-check detects medium risk" "$medium_out" "CENTAUR CHECK: medium"
+assert_contains "centaur-check detects product signal" "$medium_out" "product_files_changed: 1"
 
 high="$(mktemp_repo)"
 printf '{"scripts":{"test":"echo ok"}}\n' > "$high/package.json"
@@ -169,6 +181,8 @@ printf '{"scripts":{"test":"echo ok"},"dependencies":{"left-pad":"1.3.0"}}\n' > 
 high_out="$(bash scripts/centaur-check.sh "$high")"
 assert_contains "centaur-check detects high risk" "$high_out" "CENTAUR CHECK: high"
 assert_contains "centaur-check detects missing lockfile evidence" "$high_out" "dependency metadata changed without lockfile evidence"
+assert_contains "centaur-check detects dependency signal" "$high_out" "dependency_manifest_changed: yes"
+assert_contains "centaur-check detects lockfile signal" "$high_out" "lockfile_evidence: no"
 
 no_test_dep="$(mktemp_repo)"
 printf '{"name":"demo"}\n' > "$no_test_dep/package.json"
@@ -187,6 +201,7 @@ bash scripts/centaur-init.sh "$mixed" >/dev/null
 mixed_out="$(bash scripts/centaur-check.sh "$mixed")"
 assert_contains "centaur-check detects mixed setup and product changes" "$mixed_out" "setup files mixed with product changes"
 assert_contains "centaur-check reports untracked files" "$mixed_out" "Untracked files:"
+assert_contains "centaur-check detects setup signal" "$mixed_out" "setup_files_changed:"
 
 invalid_contract="$(mktemp_repo)"
 bash scripts/centaur-init.sh "$invalid_contract" >/dev/null
@@ -200,7 +215,10 @@ printf '# Policy\n' > "$integrated/.claude/knowledge/charter/principles.md"
 printf '{"hooks":{}}\n' > "$integrated/.claude/hooks/hooks.json"
 bash scripts/centaur-init.sh "$integrated" >/dev/null
 integration_out="$(bash scripts/centaur-health.sh "$integrated")"
-assert_contains "centaur-health detects charter policy" "$integration_out" "policy: present"
+integration_init_out="$(bash scripts/centaur-init.sh "$integrated")"
+assert_contains "centaur-init detects real charter integration" "$integration_init_out" "integration.claude_charter: detected"
+assert_contains "centaur-health detects policy file" "$integration_out" "policy_file: present"
+assert_contains "centaur-health detects charter policy" "$integration_out" "charter_policy: detected"
 assert_contains "centaur-health detects guardrails" "$integration_out" "guardrails: detected"
 assert_contains "centaur-health detects sea" "$integration_out" "sea: detected"
 

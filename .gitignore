@@ -1,0 +1,8 @@
+# Centaur runtime state
+.centaur/metrics.jsonl
+.centaur/session.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

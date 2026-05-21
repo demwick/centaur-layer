@@ -1,0 +1,40 @@
+{
+  "name": "centaur-layer",
+  "version": "0.1.0",
+  "description": "A reasoning-preservation layer for AI-assisted software development.",
+  "author": {
+    "name": "Demirel"
+  },
+  "homepage": "https://github.com/demwick/centaur-layer",
+  "repository": "https://github.com/demwick/centaur-layer",
+  "license": "MIT",
+  "keywords": [
+    "ai-coding",
+    "software-engineering",
+    "developer-tools",
+    "reasoning",
+    "code-review",
+    "guardrails",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Centaur Layer",
+    "shortDescription": "Keep human judgment active while coding with AI",
+    "longDescription": "Adds contracts, comprehension checks, Socratic debugging, and AI-readiness audits for software teams using AI coding agents.",
+    "developerName": "Demirel",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use centaur-init in this repo.",
+      "Create a Centaur Contract for this feature.",
+      "Run a Centaur Check on the current diff.",
+      "Coach me through this bug instead of giving the answer immediately."
+    ],
+    "brandColor": "#0F766E",
+    "screenshots": []
+  }
+}

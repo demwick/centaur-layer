@@ -15,7 +15,7 @@ Initialize Centaur Layer for the current repository.
    - `.sea/` means a software-engineer-agents runtime state exists.
 3. Create `.centaur/` if needed.
 4. Create `.centaur/contract.md` from the template below if it does not exist.
-5. Create `.centaur/README.md` with a short explanation of committed vs ignored Centaur files.
+5. Create `.centaur/README.md` from `templates/runtime-readme.md` with a short explanation of committed vs ignored Centaur files.
 6. Add `.centaur/metrics.jsonl` and `.centaur/session.json` to `.gitignore` if they are not already ignored.
 7. Report what was detected and the next recommended command.
 

@@ -80,9 +80,17 @@ Use centaur-coach to debug this failing test.
 Use centaur-health to audit AI-readiness.
 ```
 
+For a concrete contract shape, see `examples/contracts/web-feature.md`.
+
 ## Project Status
 
 MVP scaffold. The first goal is a usable local plugin with contract creation, diff comprehension checks, Socratic coaching, and health audit prompts.
+
+Validate the local plugin structure with:
+
+```bash
+bash scripts/validate-plugin.sh
+```
 
 ## Near-Term Roadmap
 

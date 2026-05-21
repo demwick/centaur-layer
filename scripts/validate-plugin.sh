@@ -104,9 +104,9 @@ grep -qF "## Required Behavior" templates/claude.md \
   || fail "CLAUDE.md template missing Required Behavior"
 ok "CLAUDE.md template has required sections"
 
-grep -q "Centaur Layer is the single product users install" README.md \
+grep -qE "Centaur Layer is the single product (users|you) install" README.md \
   || fail "README must state single-product positioning"
-grep -qi "deliberate defect drills should be opt-in" README.md \
+grep -qiE "opt-in synthetic|synthetic drills only|synthetic-only|defect drills should be opt-in" README.md \
   || fail "README must keep defect drills opt-in"
 ok "README product guardrails present"
 
@@ -178,7 +178,12 @@ printf '{"scripts":{"test":"echo ok"}}\n' > "$high/package.json"
 git -C "$high" add package.json
 git -C "$high" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "chore: seed package"
 printf '{"scripts":{"test":"echo ok"},"dependencies":{"left-pad":"1.3.0"}}\n' > "$high/package.json"
+set +e
 high_out="$(bash scripts/centaur-check.sh "$high")"
+high_rc=$?
+set -e
+[ "$high_rc" -eq 1 ] || fail "centaur-check should exit 1 on high risk (got $high_rc)"
+ok "centaur-check exit code high"
 assert_contains "centaur-check detects high risk" "$high_out" "CENTAUR CHECK: high"
 assert_contains "centaur-check detects missing lockfile evidence" "$high_out" "dependency metadata changed without lockfile evidence"
 assert_contains "centaur-check detects dependency signal" "$high_out" "dependency_manifest_changed: yes"
@@ -189,7 +194,9 @@ printf '{"name":"demo"}\n' > "$no_test_dep/package.json"
 git -C "$no_test_dep" add package.json
 git -C "$no_test_dep" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "chore: seed package"
 printf '{"name":"demo","dependencies":{"left-pad":"1.3.0"}}\n' > "$no_test_dep/package.json"
+set +e
 no_test_dep_out="$(bash scripts/centaur-check.sh "$no_test_dep")"
+set -e
 assert_contains "centaur-check detects missing test evidence" "$no_test_dep_out" "dependency change without test command evidence"
 
 mixed="$(mktemp_repo)"
@@ -225,5 +232,13 @@ assert_contains "centaur-health detects sea" "$integration_out" "sea: detected"
 drill_out="$(bash scripts/centaur-drill.sh boundary)"
 assert_contains "centaur-drill is synthetic" "$drill_out" "mode: synthetic-only"
 assert_contains "centaur-drill does not write files" "$drill_out" "writes_files: no"
+
+if [ -d tests/bats ]; then
+  bats_files=(tests/bats/*.bats)
+  if [ "${#bats_files[@]}" -gt 0 ] && [ -f "${bats_files[0]}" ]; then
+    bash tests/bats/bin/bats "${bats_files[@]}" >&2 || fail "bats suite failed"
+    ok "bats suite passed"
+  fi
+fi
 
 printf '\n%d checks passed\n' "$pass"

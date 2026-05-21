@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# Minimal bats-compatible test runner for Centaur Layer.
+# Supports a subset of bats-core syntax:
+#   @test "name" { ... }
+#   setup() { ... }, teardown() { ... }
+#   load <path>  -> sourced as a bash file (relative to bats file dir or absolute)
+#   run cmd args -> captures stdout+stderr into $output, exit into $status
+#   top-level statements are evaluated as preamble (variables, sources, helpers)
+# Assertions: plain shell `[ ]` / `[[ ]]`.
+# No external dependencies.
+
+set -uo pipefail
+
+if [ "$#" -eq 0 ]; then
+  printf 'usage: bats <file.bats> [<file.bats> ...]\n' >&2
+  exit 64
+fi
+
+total_tests=0
+total_pass=0
+total_fail=0
+failed_names=()
+
+run_file() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    printf 'bats: file not found: %s\n' "$file" >&2
+    return 1
+  fi
+
+  local file_dir
+  file_dir="$(cd "$(dirname "$file")" && pwd)"
+
+  local preamble=""
+  local setup_body=""
+  local teardown_body=""
+  declare -a test_names=()
+  declare -a test_bodies=()
+
+  local name="" depth=0 body="" line
+  local state="top" current=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [ "$state" = "top" ]; then
+      if [[ "$line" =~ ^@test[[:space:]]+\"(.+)\"[[:space:]]+\{[[:space:]]*$ ]]; then
+        name="${BASH_REMATCH[1]}"
+        current="test"; depth=1; body=""; state="body"
+        continue
+      elif [[ "$line" =~ ^setup\(\)[[:space:]]*\{[[:space:]]*$ ]]; then
+        current="setup"; depth=1; body=""; state="body"
+        continue
+      elif [[ "$line" =~ ^teardown\(\)[[:space:]]*\{[[:space:]]*$ ]]; then
+        current="teardown"; depth=1; body=""; state="body"
+        continue
+      else
+        preamble+="$line"$'\n'
+      fi
+    elif [ "$state" = "body" ]; then
+      local trimmed="${line%%#*}"
+      local opens="${trimmed//[^\{]/}"
+      local closes="${trimmed//[^\}]/}"
+      depth=$((depth + ${#opens} - ${#closes}))
+      if [ "$depth" -le 0 ]; then
+        case "$current" in
+          test) test_names+=("$name"); test_bodies+=("$body") ;;
+          setup) setup_body="$body" ;;
+          teardown) teardown_body="$body" ;;
+        esac
+        state="top"
+        continue
+      fi
+      body+="$line"$'\n'
+    fi
+  done < "$file"
+
+  printf '%s\n' "1..${#test_names[@]}"
+
+  local i=0
+  while [ "$i" -lt "${#test_names[@]}" ]; do
+    local tname="${test_names[$i]}"
+    local tbody="${test_bodies[$i]}"
+    total_tests=$((total_tests + 1))
+    local tmpout
+    tmpout="$(mktemp)"
+    (
+      set +e
+      export BATS_TEST_DIRNAME="$file_dir"
+      load() {
+        local path="$1"
+        [[ "$path" != /* ]] && path="$BATS_TEST_DIRNAME/$path"
+        [[ -f "$path" ]] || path="${path}.bash"
+        # shellcheck disable=SC1090
+        source "$path"
+      }
+      run() {
+        local _e=0
+        case $- in *e*) _e=1; set +e ;; esac
+        output="$("$@" 2>&1)"
+        status=$?
+        mapfile -t lines <<< "$output"
+        [ "$_e" = "1" ] && set -e
+        return 0
+      }
+      set -e
+      eval "$preamble"
+      eval "$setup_body"
+      eval "$tbody"
+      eval "$teardown_body"
+    ) >"$tmpout" 2>&1
+    local rc=$?
+    if [ "$rc" -eq 0 ]; then
+      printf 'ok %d %s\n' "$((i + 1))" "$tname"
+      total_pass=$((total_pass + 1))
+    else
+      printf 'not ok %d %s\n' "$((i + 1))" "$tname"
+      sed 's/^/# /' "$tmpout"
+      total_fail=$((total_fail + 1))
+      failed_names+=("$file::$tname")
+    fi
+    rm -f "$tmpout"
+    i=$((i + 1))
+  done
+}
+
+for f in "$@"; do
+  run_file "$f"
+done
+
+printf '\n%d tests, %d passed, %d failed\n' "$total_tests" "$total_pass" "$total_fail"
+if [ "$total_fail" -gt 0 ]; then
+  for name in "${failed_names[@]}"; do
+    printf 'FAILED: %s\n' "$name"
+  done
+  exit 1
+fi
+exit 0

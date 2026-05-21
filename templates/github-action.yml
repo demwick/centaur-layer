@@ -1,0 +1,70 @@
+# Centaur Layer — PR risk check.
+# Copy this file to .github/workflows/centaur-check.yml.
+# Posts a risk summary as a PR comment when centaur-check reports findings.
+
+name: centaur-check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  centaur-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Centaur Layer
+        run: |
+          git clone --depth 1 https://github.com/demwick/centaur-layer.git "$RUNNER_TEMP/centaur"
+          echo "CENTAUR_PLUGIN_ROOT=$RUNNER_TEMP/centaur" >> "$GITHUB_ENV"
+
+      - name: Run centaur-check against PR diff
+        id: check
+        env:
+          CENTAUR_FAIL_ON: ${{ vars.CENTAUR_FAIL_ON || 'high' }}
+        run: |
+          set +e
+          base="${{ github.event.pull_request.base.sha }}"
+          git diff --name-only "$base" HEAD > /tmp/centaur-files.txt
+          git stash -u >/dev/null 2>&1 || true
+          # Re-stage PR changes vs base so --staged sees the diff.
+          while IFS= read -r f; do
+            [ -n "$f" ] && git checkout HEAD -- "$f" 2>/dev/null && git add "$f"
+          done < /tmp/centaur-files.txt
+          output="$(bash "$CENTAUR_PLUGIN_ROOT/scripts/centaur-check.sh" --staged .)"
+          rc=$?
+          echo "$output" | tee /tmp/centaur-output.txt
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          {
+            echo "report<<EOF"
+            echo "$output"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = '## Centaur Check\n\n```\n' + fs.readFileSync('/tmp/centaur-output.txt', 'utf8') + '\n```';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Fail job when threshold reached
+        if: steps.check.outputs.rc != '0'
+        run: |
+          echo "centaur-check exit ${{ steps.check.outputs.rc }} — risk threshold reached"
+          exit 1

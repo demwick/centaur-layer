@@ -6,6 +6,14 @@ Centaur Layer has no build step. Validate the plugin structure with local comman
 bash scripts/validate-plugin.sh
 ```
 
+The validation run also executes the bats-style suite under `tests/bats/`. Run that suite directly while iterating:
+
+```bash
+bash tests/bats/bin/bats tests/bats/*.bats
+```
+
+`tests/bats/bin/bats` is a minimal in-tree runner — no external bats-core install required.
+
 Manual smoke test:
 
 1. Load the plugin in a throwaway repository.

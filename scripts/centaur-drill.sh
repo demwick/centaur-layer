@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/common.sh
+source "$PLUGIN_ROOT/scripts/lib/common.sh"
+
 kind="${1:-boundary}"
+repo="${CENTAUR_REPO:-$PWD}"
 
 case "$kind" in
   boundary)
@@ -45,5 +50,7 @@ printf -- '- Review this synthetic AI suggestion. What is the hidden flaw?\n'
 printf '\nSnippet:%s\n' "$snippet"
 printf 'Expected finding:\n'
 printf -- '- %s\n' "$answer"
+
+centaur_emit_metric "$repo" "drill" "kind=$kind"
 
 exit 0

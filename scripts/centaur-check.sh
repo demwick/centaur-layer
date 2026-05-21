@@ -1,55 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET_DIR="${1:-.}"
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/common.sh
+source "$PLUGIN_ROOT/scripts/lib/common.sh"
+
+mode="all"
+ast_mode="${CENTAUR_AST:-0}"
+target_arg=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --staged) mode="staged"; shift ;;
+    --all) mode="all"; shift ;;
+    --ast) ast_mode=1; shift ;;
+    --no-ast) ast_mode=0; shift ;;
+    *) target_arg="$1"; shift ;;
+  esac
+done
+TARGET_DIR="${target_arg:-.}"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 cd "$TARGET_DIR"
 
-is_setup_file() {
-  case "$1" in
-    .centaur/*|.gitignore|CLAUDE.md)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-is_dependency_manifest() {
-  case "$1" in
-    package.json|Cargo.toml|go.mod|requirements*.txt|pyproject.toml)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-is_lockfile() {
-  case "$1" in
-    package-lock.json|pnpm-lock.yaml|yarn.lock|bun.lock*|Cargo.lock|go.sum)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}
-
-has_test_runner() {
-  if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
-    return 0
-  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
-    return 0
-  elif [ -f "go.mod" ] || [ -f "Cargo.toml" ]; then
-    return 0
-  elif [ -f "Makefile" ] && grep -qE '^test:' Makefile 2>/dev/null; then
-    return 0
-  fi
-  return 1
-}
+is_setup_file() { centaur_is_setup_file "$1"; }
+is_dependency_manifest() { centaur_is_dependency_manifest "$1"; }
+is_lockfile() { centaur_is_lockfile "$1"; }
+has_test_runner() { centaur_has_test_runner "."; }
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf 'CENTAUR CHECK: unavailable\n'
@@ -60,7 +35,11 @@ fi
 modified_files="$(git diff --name-only | sort -u)"
 staged_files="$(git diff --cached --name-only | sort -u)"
 untracked_files="$(git ls-files --others --exclude-standard | sort -u)"
-files="$( { printf '%s\n' "$modified_files"; printf '%s\n' "$staged_files"; printf '%s\n' "$untracked_files"; } | sed '/^$/d' | sort -u )"
+if [ "$mode" = "staged" ]; then
+  files="$(printf '%s\n' "$staged_files" | sed '/^$/d' | sort -u)"
+else
+  files="$( { printf '%s\n' "$modified_files"; printf '%s\n' "$staged_files"; printf '%s\n' "$untracked_files"; } | sed '/^$/d' | sort -u )"
+fi
 
 if [ -z "$files" ]; then
   printf 'CENTAUR CHECK: none\n'
@@ -102,9 +81,22 @@ while IFS= read -r file; do
       reasons+=("dependency or build metadata changed: $file")
       ;;
     *auth*|*Auth*|*session*|*Session*|*permission*|*Permission*|*billing*|*Billing*|*secret*|*.env*|*schema*|*migration*)
-      sensitive_domain_changed=1
-      risk="high"
-      reasons+=("sensitive domain changed: $file")
+      verdict="sensitive"
+      if [ "$ast_mode" = "1" ] && [ -f "$file" ]; then
+        verdict="$(bash "$PLUGIN_ROOT/scripts/centaur-ast-check.sh" "$file" | awk -F'\t' '{print $2}')"
+        [ -z "$verdict" ] && verdict="sensitive"
+      fi
+      if [ "$verdict" = "sensitive" ]; then
+        sensitive_domain_changed=1
+        risk="high"
+        if [ "$ast_mode" = "1" ]; then
+          reasons+=("sensitive domain changed (AST-confirmed): $file")
+        else
+          reasons+=("sensitive domain changed: $file")
+        fi
+      else
+        [ "$risk" = "low" ] && risk="medium"
+      fi
       ;;
     *test*|tests/*|__tests__/*)
       test_file_changed=1
@@ -233,4 +225,20 @@ else
   printf -- '- Accept only after the questions above have clear answers.\n'
 fi
 
+primary_reason="none"
+if [ "${#reasons[@]}" -gt 0 ]; then
+  primary_reason="${reasons[0]}"
+fi
+centaur_emit_metric "$TARGET_DIR" "check" \
+  "risk=$risk" \
+  "files=$file_count" \
+  "primary_reason=$primary_reason"
+
+fail_threshold="${CENTAUR_FAIL_ON:-high}"
+case "$fail_threshold" in
+  high)   [ "$risk" = "high" ] && exit 1 ;;
+  medium) { [ "$risk" = "high" ] || [ "$risk" = "medium" ]; } && exit 1 ;;
+  low)    [ "$risk" != "none" ] && [ "$risk" != "unavailable" ] && exit 1 ;;
+  none)   ;;
+esac
 exit 0

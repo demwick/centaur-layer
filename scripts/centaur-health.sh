@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/common.sh
+source "$PLUGIN_ROOT/scripts/lib/common.sh"
+
 TARGET_DIR="${1:-.}"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 cd "$TARGET_DIR"
@@ -158,5 +162,10 @@ elif [ "$has_guardrails" -eq 0 ]; then
 else
   printf -- '- centaur-check before accepting the next AI-generated diff\n'
 fi
+
+centaur_emit_metric "$TARGET_DIR" "health" \
+  "status=$status" \
+  "score=$score" \
+  "git_clean=$git_clean"
 
 exit 0

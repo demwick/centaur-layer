@@ -1,6 +1,6 @@
 {
   "name": "centaur-layer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A reasoning-preservation layer for AI-assisted software development.",
   "author": {
     "name": "Demirel"
@@ -32,7 +32,8 @@
       "Use centaur-init in this repo.",
       "Create a Centaur Contract for this feature.",
       "Run a Centaur Check on the current diff.",
-      "Coach me through this bug instead of giving the answer immediately."
+      "Coach me through this bug instead of giving the answer immediately.",
+      "Show me my Centaur stats for the last 7 days."
     ],
     "brandColor": "#0F766E",
     "screenshots": []

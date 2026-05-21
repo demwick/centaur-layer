@@ -2,7 +2,18 @@
 set -euo pipefail
 
 PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_DIR="${1:-.}"
+# shellcheck source=lib/common.sh
+source "$PLUGIN_ROOT/scripts/lib/common.sh"
+
+with_hooks=0
+target_arg=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --with-hooks) with_hooks=1; shift ;;
+    *) target_arg="$1"; shift ;;
+  esac
+done
+TARGET_DIR="${target_arg:-.}"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 
 CENTAUR_DIR="$TARGET_DIR/.centaur"
@@ -41,6 +52,8 @@ for pattern in ".centaur/metrics.jsonl" ".centaur/session.json"; do
   fi
 done
 
+touch "$CENTAUR_DIR/metrics.jsonl"
+
 charter="absent"
 if [ -d "$TARGET_DIR/.claude/knowledge/charter" ] || [ -d "$TARGET_DIR/.claude" ]; then
   charter="detected"
@@ -58,6 +71,23 @@ printf 'policy: %s (%s)\n' "$POLICY" "$([ "$created_policy" -eq 1 ] && printf cr
 printf 'gitignore: %s\n' "$([ "$updated_gitignore" -eq 1 ] && printf updated || printf unchanged)"
 printf 'integration.claude_charter: %s\n' "$charter"
 printf 'integration.sea: %s\n' "$sea"
+hooks_state="absent"
+if [ "$with_hooks" -eq 1 ]; then
+  if bash "$PLUGIN_ROOT/scripts/centaur-install-hooks.sh" "$TARGET_DIR" >/dev/null 2>&1; then
+    hooks_state="installed"
+  else
+    hooks_state="failed"
+  fi
+fi
+printf 'hooks: %s\n' "$hooks_state"
+
 printf 'next: run centaur-contract to fill the Active Contract section\n'
+
+centaur_emit_metric "$TARGET_DIR" "init" \
+  "contract_created=$created_contract" \
+  "policy_created=$created_policy" \
+  "charter=$charter" \
+  "sea=$sea" \
+  "hooks=$hooks_state"
 
 exit 0

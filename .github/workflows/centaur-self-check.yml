@@ -1,0 +1,21 @@
+name: centaur-self-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure bash + python available
+        run: |
+          bash --version
+          python3 --version
+
+      - name: Validate plugin (includes bats suite)
+        run: bash scripts/validate-plugin.sh

@@ -98,6 +98,12 @@ grep -qF "## Do Not Commit These" templates/runtime-readme.md \
   || fail "runtime README template missing ignored-files section"
 ok "runtime README template has required sections"
 
+grep -qF "## Centaur Principles" templates/claude.md \
+  || fail "CLAUDE.md template missing Centaur Principles"
+grep -qF "## Required Behavior" templates/claude.md \
+  || fail "CLAUDE.md template missing Required Behavior"
+ok "CLAUDE.md template has required sections"
+
 grep -q "Centaur Layer is the single product users install" README.md \
   || fail "README must state single-product positioning"
 grep -qi "deliberate defect drills should be opt-in" README.md \
@@ -113,17 +119,26 @@ tmp="$(mktemp_repo)"
 init_out="$(bash scripts/centaur-init.sh "$tmp")"
 [ -f "$tmp/.centaur/contract.md" ] || fail "centaur-init did not create contract"
 [ -f "$tmp/.centaur/README.md" ] || fail "centaur-init did not create runtime README"
+[ -f "$tmp/CLAUDE.md" ] || fail "centaur-init did not create CLAUDE.md"
 grep -qxF ".centaur/metrics.jsonl" "$tmp/.gitignore" || fail "centaur-init did not ignore metrics"
 grep -qxF ".centaur/session.json" "$tmp/.gitignore" || fail "centaur-init did not ignore session"
 assert_contains "centaur-init reports completion" "$init_out" "CENTAUR INIT: complete"
+assert_contains "centaur-init reports policy creation" "$init_out" "policy:"
 
 printf '\nCUSTOM MARKER\n' >> "$tmp/.centaur/contract.md"
 bash scripts/centaur-init.sh "$tmp" >/dev/null
 grep -q "CUSTOM MARKER" "$tmp/.centaur/contract.md" || fail "centaur-init overwrote existing contract"
 ok "centaur-init preserves existing contract"
 
+policy_tmp="$(mktemp_repo)"
+printf 'CUSTOM POLICY\n' > "$policy_tmp/CLAUDE.md"
+bash scripts/centaur-init.sh "$policy_tmp" >/dev/null
+grep -q "CUSTOM POLICY" "$policy_tmp/CLAUDE.md" || fail "centaur-init overwrote existing CLAUDE.md"
+ok "centaur-init preserves existing CLAUDE.md"
+
 health_out="$(bash scripts/centaur-health.sh "$tmp")"
 assert_contains "centaur-health reports status" "$health_out" "CENTAUR HEALTH:"
+assert_contains "centaur-health suggests next command" "$health_out" "Suggested next command:"
 
 risky="$(mktemp_repo)"
 risky_out="$(bash scripts/centaur-health.sh "$risky")"
@@ -153,6 +168,25 @@ git -C "$high" -c user.name=Centaur -c user.email=centaur@example.com commit -q 
 printf '{"scripts":{"test":"echo ok"},"dependencies":{"left-pad":"1.3.0"}}\n' > "$high/package.json"
 high_out="$(bash scripts/centaur-check.sh "$high")"
 assert_contains "centaur-check detects high risk" "$high_out" "CENTAUR CHECK: high"
+assert_contains "centaur-check detects missing lockfile evidence" "$high_out" "dependency metadata changed without lockfile evidence"
+
+no_test_dep="$(mktemp_repo)"
+printf '{"name":"demo"}\n' > "$no_test_dep/package.json"
+git -C "$no_test_dep" add package.json
+git -C "$no_test_dep" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "chore: seed package"
+printf '{"name":"demo","dependencies":{"left-pad":"1.3.0"}}\n' > "$no_test_dep/package.json"
+no_test_dep_out="$(bash scripts/centaur-check.sh "$no_test_dep")"
+assert_contains "centaur-check detects missing test evidence" "$no_test_dep_out" "dependency change without test command evidence"
+
+mixed="$(mktemp_repo)"
+printf '# Demo\n' > "$mixed/README.md"
+git -C "$mixed" add README.md
+git -C "$mixed" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "docs: seed readme"
+printf '\nProduct docs change.\n' >> "$mixed/README.md"
+bash scripts/centaur-init.sh "$mixed" >/dev/null
+mixed_out="$(bash scripts/centaur-check.sh "$mixed")"
+assert_contains "centaur-check detects mixed setup and product changes" "$mixed_out" "setup files mixed with product changes"
+assert_contains "centaur-check reports untracked files" "$mixed_out" "Untracked files:"
 
 invalid_contract="$(mktemp_repo)"
 bash scripts/centaur-init.sh "$invalid_contract" >/dev/null

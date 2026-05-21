@@ -23,7 +23,7 @@ Run a reasoning check on a diff before it is accepted.
 ## Risk Rubric
 
 - **low**: docs, copy, tests, small local refactors, or isolated UI changes with clear verification.
-- **medium**: behavior changes, new branches, error handling, async flows, data parsing, dependency bumps, or changes touching 2-3 modules.
+- **medium**: behavior changes, new branches, error handling, async flows, data parsing, mixed setup/product diffs, or changes touching 2-3 modules.
 - **high**: auth, permissions, secrets, billing, persistence, schema migrations, generated code the user cannot explain, destructive operations, or broad cross-module refactors.
 
 ## Question Style
@@ -55,7 +55,9 @@ Lead with the risk level:
 
 Then provide:
 
-- `Observed change`
+- `Modified files`
+- `Staged files`
+- `Untracked files`
 - `Questions`
 - `Verification`
 - `Recommendation`

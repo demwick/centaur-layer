@@ -73,9 +73,9 @@ fi
 
 [ "$has_contract" -eq 1 ] && signals+=("contract: present") || missing+=("Run centaur-init to create .centaur/contract.md")
 [ "$valid_contract" -eq 1 ] && signals+=("contract_sections: valid") || missing+=("Restore required sections in .centaur/contract.md")
-[ "$has_policy" -eq 1 ] && signals+=("policy: present") || missing+=("Add CLAUDE.md or .claude/knowledge/charter/ policy")
-[ "$has_context" -eq 1 ] && signals+=("context: present") || missing+=("Add README.md, docs/, or .claude/knowledge/context/")
-[ "$has_test" -eq 1 ] && signals+=("tests: detected") || missing+=("Add a test command or project test runner")
+[ "$has_policy" -eq 1 ] && signals+=("policy: present") || missing+=("Run centaur-init or add CLAUDE.md")
+[ "$has_context" -eq 1 ] && signals+=("context: present") || missing+=("Add README.md or docs/architecture.md")
+[ "$has_test" -eq 1 ] && signals+=("tests: detected") || missing+=("Add a package.json test script, Makefile test target, or native test runner")
 [ "$has_guardrails" -eq 1 ] && signals+=("guardrails: detected") || missing+=("Add guardrails for destructive commands")
 [ "$has_git" -eq 1 ] && signals+=("git: repository") || missing+=("Initialize git before AI-assisted changes")
 [ "$git_clean" -eq 1 ] && signals+=("git_clean: yes") || signals+=("git_clean: no")
@@ -105,6 +105,19 @@ else
     count=$((count + 1))
     [ "$count" -ge 3 ] && break
   done
+fi
+
+printf '\nSuggested next command:\n'
+if [ "$has_contract" -eq 0 ] || [ "$has_policy" -eq 0 ]; then
+  printf -- '- centaur-init\n'
+elif [ "$has_context" -eq 0 ]; then
+  printf -- '- add README.md or docs/architecture.md, then rerun centaur-health\n'
+elif [ "$has_test" -eq 0 ]; then
+  printf -- '- add a test command, then rerun centaur-health\n'
+elif [ "$has_guardrails" -eq 0 ]; then
+  printf -- '- add destructive-command guardrails, then rerun centaur-health\n'
+else
+  printf -- '- centaur-check before accepting the next AI-generated diff\n'
 fi
 
 exit 0

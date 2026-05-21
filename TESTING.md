@@ -10,7 +10,7 @@ Manual smoke test:
 
 1. Load the plugin in a throwaway repository.
 2. Run `centaur-init`.
-3. Confirm `.centaur/contract.md` exists and `.gitignore` ignores runtime metrics.
+3. Confirm `.centaur/contract.md`, `.centaur/README.md`, `CLAUDE.md`, and `.gitignore` exist.
 4. Make a small diff.
 5. Run `centaur-check` and confirm it asks diff-specific questions.
 6. Run `centaur-health` and confirm it reports concrete missing guardrails.

@@ -5,13 +5,62 @@ TARGET_DIR="${1:-.}"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 cd "$TARGET_DIR"
 
+is_setup_file() {
+  case "$1" in
+    .centaur/*|.gitignore|CLAUDE.md)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_dependency_manifest() {
+  case "$1" in
+    package.json|Cargo.toml|go.mod|requirements*.txt|pyproject.toml)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_lockfile() {
+  case "$1" in
+    package-lock.json|pnpm-lock.yaml|yarn.lock|bun.lock*|Cargo.lock|go.sum)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+has_test_runner() {
+  if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
+    return 0
+  elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
+    return 0
+  elif [ -f "go.mod" ] || [ -f "Cargo.toml" ]; then
+    return 0
+  elif [ -f "Makefile" ] && grep -qE '^test:' Makefile 2>/dev/null; then
+    return 0
+  fi
+  return 1
+}
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf 'CENTAUR CHECK: unavailable\n'
   printf 'reason: not a git repository\n'
   exit 0
 fi
 
-files="$( { git diff --name-only; git diff --cached --name-only; } | sort -u )"
+modified_files="$(git diff --name-only | sort -u)"
+staged_files="$(git diff --cached --name-only | sort -u)"
+untracked_files="$(git ls-files --others --exclude-standard | sort -u)"
+files="$( { printf '%s\n' "$modified_files"; printf '%s\n' "$staged_files"; printf '%s\n' "$untracked_files"; } | sed '/^$/d' | sort -u )"
 
 if [ -z "$files" ]; then
   printf 'CENTAUR CHECK: none\n'
@@ -22,9 +71,24 @@ fi
 
 risk="low"
 reasons=()
+setup_count=0
+product_count=0
+dependency_manifest_changed=0
+lockfile_evidence=0
 
 while IFS= read -r file; do
   [ -n "$file" ] || continue
+  if is_setup_file "$file"; then
+    setup_count=$((setup_count + 1))
+  else
+    product_count=$((product_count + 1))
+  fi
+  if is_dependency_manifest "$file"; then
+    dependency_manifest_changed=1
+  fi
+  if is_lockfile "$file"; then
+    lockfile_evidence=1
+  fi
   case "$file" in
     *.md|docs/*|README.md|LICENSE)
       ;;
@@ -44,6 +108,21 @@ while IFS= read -r file; do
       ;;
   esac
 done <<< "$files"
+
+if [ "$setup_count" -gt 0 ] && [ "$product_count" -gt 0 ]; then
+  [ "$risk" = "low" ] && risk="medium"
+  reasons+=("setup files mixed with product changes")
+fi
+
+if [ "$dependency_manifest_changed" -eq 1 ] && [ "$lockfile_evidence" -eq 0 ]; then
+  risk="high"
+  reasons+=("dependency metadata changed without lockfile evidence")
+fi
+
+if [ "$dependency_manifest_changed" -eq 1 ] && ! has_test_runner; then
+  risk="high"
+  reasons+=("dependency change without test command evidence")
+fi
 
 file_count="$(printf '%s\n' "$files" | sed '/^$/d' | wc -l | tr -d ' ')"
 if [ "$file_count" -gt 3 ] && [ "$risk" != "high" ]; then
@@ -67,8 +146,26 @@ if [ -f ".centaur/contract.md" ]; then
 fi
 
 printf 'CENTAUR CHECK: %s\n' "$risk"
-printf '\nObserved change:\n'
-printf '%s\n' "$files" | sed '/^$/d; s/^/- /'
+printf '\nModified files:\n'
+if [ -n "$modified_files" ]; then
+  printf '%s\n' "$modified_files" | sed '/^$/d; s/^/- /'
+else
+  printf -- '- none\n'
+fi
+
+printf '\nStaged files:\n'
+if [ -n "$staged_files" ]; then
+  printf '%s\n' "$staged_files" | sed '/^$/d; s/^/- /'
+else
+  printf -- '- none\n'
+fi
+
+printf '\nUntracked files:\n'
+if [ -n "$untracked_files" ]; then
+  printf '%s\n' "$untracked_files" | sed '/^$/d; s/^/- /'
+else
+  printf -- '- none\n'
+fi
 
 printf '\nRisk reasons:\n'
 if [ "${#reasons[@]}" -eq 0 ]; then

@@ -9,11 +9,13 @@ CENTAUR_DIR="$TARGET_DIR/.centaur"
 CONTRACT="$CENTAUR_DIR/contract.md"
 RUNTIME_README="$CENTAUR_DIR/README.md"
 GITIGNORE="$TARGET_DIR/.gitignore"
+POLICY="$TARGET_DIR/CLAUDE.md"
 
 mkdir -p "$CENTAUR_DIR"
 
 created_contract=0
 created_readme=0
+created_policy=0
 updated_gitignore=0
 
 if [ ! -f "$CONTRACT" ]; then
@@ -24,6 +26,11 @@ fi
 if [ ! -f "$RUNTIME_README" ]; then
   cp "$PLUGIN_ROOT/templates/runtime-readme.md" "$RUNTIME_README"
   created_readme=1
+fi
+
+if [ ! -f "$POLICY" ]; then
+  cp "$PLUGIN_ROOT/templates/claude.md" "$POLICY"
+  created_policy=1
 fi
 
 touch "$GITIGNORE"
@@ -47,6 +54,7 @@ fi
 printf 'CENTAUR INIT: complete\n'
 printf 'contract: %s (%s)\n' "$CONTRACT" "$([ "$created_contract" -eq 1 ] && printf created || printf preserved)"
 printf 'runtime_readme: %s (%s)\n' "$RUNTIME_README" "$([ "$created_readme" -eq 1 ] && printf created || printf preserved)"
+printf 'policy: %s (%s)\n' "$POLICY" "$([ "$created_policy" -eq 1 ] && printf created || printf preserved)"
 printf 'gitignore: %s\n' "$([ "$updated_gitignore" -eq 1 ] && printf updated || printf unchanged)"
 printf 'integration.claude_charter: %s\n' "$charter"
 printf 'integration.sea: %s\n' "$sea"

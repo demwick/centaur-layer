@@ -79,6 +79,8 @@ Initialize Centaur state in a target repository:
 bash /path/to/centaur-layer/scripts/centaur-init.sh /path/to/target-repo
 ```
 
+This creates `.centaur/contract.md`, `.centaur/README.md`, a minimal `CLAUDE.md`, and runtime ignores in `.gitignore`.
+
 Then use the plugin skills:
 
 ```text
@@ -94,7 +96,7 @@ For a concrete contract shape, see `examples/contracts/web-feature.md`.
 
 ## Project Status
 
-Local MVP in progress. The repository now has deterministic scripts for initialization, health checks, diff risk checks, and synthetic review drills. The plugin skills wrap those scripts with coaching-oriented behavior.
+Local MVP in progress. The repository now has deterministic scripts for initialization, health checks, diff risk checks, and synthetic review drills. The plugin skills wrap those scripts with coaching-oriented behavior and next-action guidance.
 
 Validate the local plugin structure with:
 

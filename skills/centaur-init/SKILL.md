@@ -25,7 +25,7 @@ Initialize Centaur Layer for the current repository.
 - Do not require `claude-charter` or `software-engineer-agents`; treat them as optional integrations.
 - Keep initialization small. No scaffolding, no dependency installs, no git commits.
 - If the repository is dirty, preserve all existing work.
-- Commit `.centaur/contract.md`; do not commit runtime metrics.
+- Commit `.centaur/contract.md`, `.centaur/README.md`, and `CLAUDE.md`; do not commit runtime metrics.
 - If `.gitignore` does not exist, create it.
 - Treat `scripts/centaur-init.sh` as the source of truth for file creation behavior.
 
@@ -101,5 +101,6 @@ Unset.
 End with:
 
 - contract path
+- policy path
 - detected integrations
 - recommended next step, usually `centaur-contract`

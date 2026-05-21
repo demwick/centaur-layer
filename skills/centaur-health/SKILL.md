@@ -48,4 +48,10 @@ Lead with:
 
 `CENTAUR HEALTH: READY | PARTIAL | RISKY`
 
-Then list the top 3 fixes that would most improve human oversight.
+Then report:
+
+- `Signals`
+- `Top fixes`
+- `Suggested next command`
+
+Keep the status and next command aligned with the script output.

@@ -1,5 +1,11 @@
 # Centaur Layer
 
+[![CI](https://img.shields.io/github/actions/workflow/status/demwick/centaur-layer/centaur-self-check.yml?label=CI&logo=github)](https://github.com/demwick/centaur-layer/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-D97757?logo=anthropic&logoColor=white)](https://docs.claude.com/en/docs/claude-code/plugins)
+[![Codex](https://img.shields.io/badge/Codex-plugin-10A37F?logo=openai&logoColor=white)](https://developers.openai.com/codex)
+[![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen)](#)
+
 > Keep human judgment active while coding with AI.
 
 ![Centaur Layer social preview](docs/assets/social-preview.png)

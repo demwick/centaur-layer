@@ -16,6 +16,33 @@ fail() {
   exit 1
 }
 
+assert_contains() {
+  local name="$1"
+  local haystack="$2"
+  local needle="$3"
+  if grep -qF "$needle" <<< "$haystack"; then
+    ok "$name"
+  else
+    fail "$name missing '$needle'"
+  fi
+}
+
+tmpdirs=()
+cleanup() {
+  for dir in "${tmpdirs[@]:-}"; do
+    rm -rf "$dir"
+  done
+}
+trap cleanup EXIT
+
+mktemp_repo() {
+  local dir
+  dir="$(mktemp -d)"
+  tmpdirs+=("$dir")
+  git -C "$dir" init -q
+  printf '%s\n' "$dir"
+}
+
 python3 -m json.tool .codex-plugin/plugin.json >/dev/null
 ok "plugin.json parses"
 
@@ -74,5 +101,55 @@ grep -q "Centaur Layer is the single product users install" README.md \
 grep -qi "deliberate defect drills should be opt-in" README.md \
   || fail "README must keep defect drills opt-in"
 ok "README product guardrails present"
+
+for script in scripts/*.sh; do
+  bash -n "$script"
+done
+ok "shell scripts parse"
+
+tmp="$(mktemp_repo)"
+init_out="$(bash scripts/centaur-init.sh "$tmp")"
+[ -f "$tmp/.centaur/contract.md" ] || fail "centaur-init did not create contract"
+[ -f "$tmp/.centaur/README.md" ] || fail "centaur-init did not create runtime README"
+grep -qxF ".centaur/metrics.jsonl" "$tmp/.gitignore" || fail "centaur-init did not ignore metrics"
+grep -qxF ".centaur/session.json" "$tmp/.gitignore" || fail "centaur-init did not ignore session"
+assert_contains "centaur-init reports completion" "$init_out" "CENTAUR INIT: complete"
+
+printf '\nCUSTOM MARKER\n' >> "$tmp/.centaur/contract.md"
+bash scripts/centaur-init.sh "$tmp" >/dev/null
+grep -q "CUSTOM MARKER" "$tmp/.centaur/contract.md" || fail "centaur-init overwrote existing contract"
+ok "centaur-init preserves existing contract"
+
+health_out="$(bash scripts/centaur-health.sh "$tmp")"
+assert_contains "centaur-health reports status" "$health_out" "CENTAUR HEALTH:"
+
+risky="$(mktemp_repo)"
+risky_out="$(bash scripts/centaur-health.sh "$risky")"
+assert_contains "centaur-health detects risky repo" "$risky_out" "CENTAUR HEALTH: RISKY"
+
+low="$(mktemp_repo)"
+printf '# Demo\n' > "$low/README.md"
+git -C "$low" add README.md
+git -C "$low" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "docs: seed readme"
+printf '\nMore docs.\n' >> "$low/README.md"
+low_out="$(bash scripts/centaur-check.sh "$low")"
+assert_contains "centaur-check detects low risk" "$low_out" "CENTAUR CHECK: low"
+
+medium="$(mktemp_repo)"
+mkdir -p "$medium/src"
+printf 'export function ok() { return true; }\n' > "$medium/src/app.js"
+git -C "$medium" add src/app.js
+git -C "$medium" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "feat: seed app"
+printf 'export function ok() { return false; }\n' > "$medium/src/app.js"
+medium_out="$(bash scripts/centaur-check.sh "$medium")"
+assert_contains "centaur-check detects medium risk" "$medium_out" "CENTAUR CHECK: medium"
+
+high="$(mktemp_repo)"
+printf '{"scripts":{"test":"echo ok"}}\n' > "$high/package.json"
+git -C "$high" add package.json
+git -C "$high" -c user.name=Centaur -c user.email=centaur@example.com commit -q -m "chore: seed package"
+printf '{"scripts":{"test":"echo ok"},"dependencies":{"left-pad":"1.3.0"}}\n' > "$high/package.json"
+high_out="$(bash scripts/centaur-check.sh "$high")"
+assert_contains "centaur-check detects high risk" "$high_out" "CENTAUR CHECK: high"
 
 printf '\n%d checks passed\n' "$pass"

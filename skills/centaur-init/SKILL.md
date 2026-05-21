@@ -9,15 +9,15 @@ Initialize Centaur Layer for the current repository.
 
 ## Workflow
 
-1. Inspect the repository root.
-2. Detect optional integrations:
-   - `.claude/` or `CLAUDE.md` means a charter-style policy layer exists.
-   - `.sea/` means a software-engineer-agents runtime state exists.
-3. Create `.centaur/` if needed.
-4. Create `.centaur/contract.md` from the template below if it does not exist.
-5. Create `.centaur/README.md` from `templates/runtime-readme.md` with a short explanation of committed vs ignored Centaur files.
-6. Add `.centaur/metrics.jsonl` and `.centaur/session.json` to `.gitignore` if they are not already ignored.
-7. Report what was detected and the next recommended command.
+1. Inspect the repository root and preserve existing work.
+2. Run:
+
+   ```bash
+   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-init.sh" .
+   ```
+
+3. Read the script output.
+4. Report what was created or preserved and the next recommended command.
 
 ## Rules
 
@@ -27,6 +27,7 @@ Initialize Centaur Layer for the current repository.
 - If the repository is dirty, preserve all existing work.
 - Commit `.centaur/contract.md`; do not commit runtime metrics.
 - If `.gitignore` does not exist, create it.
+- Treat `scripts/centaur-init.sh` as the source of truth for file creation behavior.
 
 ## Contract Template
 

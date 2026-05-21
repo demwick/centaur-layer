@@ -9,13 +9,16 @@ Run a reasoning check on a diff before it is accepted.
 
 ## Workflow
 
-1. Inspect the current git diff.
-2. Identify the highest-risk changed files and behavior changes.
-3. Read `.centaur/contract.md` if present.
-4. Classify the diff as low, medium, or high risk using the rubric below.
-5. Ask 2-3 short comprehension questions that target real risks in the diff.
-6. If the user answers, evaluate the answer and point out missed risks.
-7. Recommend accept, revise, or verify further.
+1. Run:
+
+   ```bash
+   bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-check.sh" .
+   ```
+
+2. Read the script output.
+3. If the script reports no diff, stop and suggest `centaur-contract` or `centaur-coach`.
+4. If the script reports a diff, ask the listed questions and add at most one extra question only if local context reveals a concrete missed risk.
+5. Recommend accept, revise, or verify further.
 
 ## Risk Rubric
 
@@ -42,6 +45,7 @@ Avoid trivia questions and generic quizzes.
 - Never write challenge defects to disk.
 - For high-risk diffs, require the user to state the intended behavior and the verification command before recommending acceptance.
 - If tests were not run, make that explicit in the recommendation.
+- Do not downgrade the risk below what `scripts/centaur-check.sh` reports.
 
 ## Output
 

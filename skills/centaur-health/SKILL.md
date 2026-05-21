@@ -9,7 +9,13 @@ Audit AI-readiness for the current repository.
 
 ## Checks
 
-Inspect for:
+Run:
+
+```bash
+bash "${CODEX_PLUGIN_ROOT:-.}/scripts/centaur-health.sh" .
+```
+
+Then use the script output as the evidence base. The script inspects:
 
 1. Centaur contract: `.centaur/contract.md`
 2. Project policy: `CLAUDE.md` or `.claude/knowledge/charter/`
@@ -34,6 +40,7 @@ Return:
 - This is a local structural audit, not a security certification.
 - Prefer concrete missing files, commands, and practices over broad advice.
 - If `claude-charter` exists, use its health model as an input, but do not require it.
+- Do not upgrade the status beyond what the script reports.
 
 ## Output
 

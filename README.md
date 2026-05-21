@@ -72,6 +72,14 @@ Or load it from a local marketplace entry once published.
 
 ## First Use
 
+Initialize Centaur state in a target repository:
+
+```bash
+bash /path/to/centaur-layer/scripts/centaur-init.sh /path/to/target-repo
+```
+
+Then use the plugin skills:
+
 ```text
 Use centaur-init in this repo.
 Use centaur-contract before implementing the next feature.
@@ -91,6 +99,8 @@ Validate the local plugin structure with:
 ```bash
 bash scripts/validate-plugin.sh
 ```
+
+The validation command also smoke-tests `centaur-init`, `centaur-health`, and `centaur-check` in temporary git repositories.
 
 ## Near-Term Roadmap
 

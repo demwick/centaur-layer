@@ -10,7 +10,7 @@
 
 ![Centaur Layer social preview](docs/assets/social-preview.png)
 
-Centaur Layer is a reasoning-preservation layer for AI-assisted software development. It is a small, local Codex plugin that wraps your existing AI coding workflow with contracts, deterministic diff risk signals, Socratic debugging, and AI-readiness audits — so the human stays in the loop on intent, tradeoffs, and risk.
+Centaur Layer is a reasoning-preservation layer for AI-assisted software development. It is a small, local plugin — for both Codex and Claude Code — that wraps your existing AI coding workflow with contracts, deterministic diff risk signals, Socratic debugging, and AI-readiness audits, so the human stays in the loop on intent, tradeoffs, and risk.
 
 AI agents make implementation faster. Centaur Layer targets the quieter failure mode: **accepting generated code without understanding its risk.**
 
@@ -18,25 +18,23 @@ AI agents make implementation faster. Centaur Layer targets the quieter failure 
 
 ## Inspiration & The Centaur Concept
 
-The name and design philosophy come from two places.
+The name comes from two places.
 
-**Garry Kasparov — Centaur Chess.** After losing to Deep Blue in 1997, Kasparov did not retreat from machines. He invented "Advanced Chess" (later called *centaur chess*): a human player paired with a chess engine. The interesting finding from years of centaur tournaments was that **a strong human + a weak machine + a good process consistently beat both grandmasters and supercomputers playing alone**. The process — the human's questions, doubts, and judgment over the machine's suggestions — was the moat, not raw computation.
+**Garry Kasparov — Centaur Chess.** After losing to IBM's Deep Blue in 1997, Kasparov didn't retreat from machines. In 1998 he launched "Advanced Chess" (later *centaur chess*): a human paired with a chess engine. The lasting finding from centaur tournaments was that an amateur with a modest machine and a good process could beat both grandmasters and top engines playing alone. The moat was the process — the human's questions, doubts, and judgment over the machine's output — not raw computation.
 
-**Barış Özcan — "Are you using AI, or is it using you?".** In his video essay *(Sen mi Yapay Zeka Kullanıyorsun? Yoksa O mu Seni?)*, Özcan frames two modes of working with AI: the **Cyborg** and the **Centaur**.
+**Barış Özcan — "Are you using AI, or is it using you?"** In his video essay, Özcan contrasts two modes of working with AI:
 
-- The **Cyborg** fuses with the tool. Speed feels great. But over time the human's reasoning atrophies — the cognitive muscles you stop using get weaker. One day you realize you cannot architect, debug, or even *evaluate* the model's output without it. You have fallen asleep at the wheel.
-- The **Centaur** stays a distinct rider. The machine carries velocity, the human carries judgment. They are partners, not one organism. The Centaur stays sharp because they keep doing the parts that matter — defining intent, naming risk, owning the final call.
+- The **Cyborg** fuses with the tool. Speed feels great, but the reasoning you stop using atrophies — until you can no longer architect, debug, or even *evaluate* the output without it.
+- The **Centaur** stays a distinct rider. The machine carries velocity, the human carries judgment. They stay sharp by owning the parts that matter — intent, risk, and the final call.
 
-**The Core Problem: Review Risk.** AI coding assistants do not only introduce code risk; they introduce *review risk*. The developer may stop tracing assumptions, edge cases, and ownership boundaries. The diff still gets merged. The bug shows up three weeks later in a domain no one re-read.
+**The core problem: review risk.** AI assistants don't just introduce code risk; they introduce *review risk*. The developer stops tracing assumptions and edge cases, the diff gets merged anyway, and the bug surfaces weeks later in code no one re-read.
 
-Centaur Layer is engineering scaffolding for staying the Centaur and mitigating review risk:
+Centaur Layer is scaffolding for staying the Centaur:
 
-- contracts make the boundary between rider and horse explicit
-- risk signals refuse to let dependency or auth changes slip through unreviewed
-- comprehension checks force a brief moment of "do I actually understand this?" before acceptance
-- Socratic coaching resists the urge to paste the answer and skip the thinking
-
-The guiding rule:
+- contracts make the rider/horse boundary explicit
+- risk signals stop dependency or auth changes from slipping through unreviewed
+- comprehension checks force a "do I actually understand this?" before acceptance
+- Socratic coaching resists pasting the answer and skipping the thinking
 
 > AI may accelerate implementation, but the human keeps ownership of intent, tradeoffs, risk, and final judgment.
 
@@ -44,7 +42,7 @@ The guiding rule:
 
 ## Status
 
-Public preview / local MVP. Centaur Layer is a Codex plugin with deterministic shell scripts and skill instructions. It is ready for experimentation, feedback, and small-team trials. It is not an enterprise governance platform, and it does not phone home.
+Public preview / local MVP. Centaur Layer is a plugin built from deterministic shell scripts and skill instructions. It is ready for experimentation, feedback, and small-team trials. It is not an enterprise governance platform, and it does not phone home.
 
 ---
 
@@ -225,7 +223,7 @@ git add .centaur CLAUDE.md .gitignore
 git commit -m "chore: initialize centaur"
 ```
 
-Then, inside a Codex session, drive the skills conversationally:
+Then, inside a Codex or Claude Code session, drive the skills conversationally:
 
 ```text
 Use centaur-contract to define scope for the next feature.
@@ -330,7 +328,7 @@ Centaur Layer is one of three independent, composable layers. Each works fully s
 | Layer | Project | Role | Answers |
 |---|---|---|---|
 | Engine | [`software-engineer`](https://github.com/demwick/software-engineer) (`.se/`) | how work gets done | "execute the work, scoped and verified" |
-| Constitution | `claude-charter` (`.claude/`) | what rules & boundaries hold | "is the AI allowed to do this?" |
+| Constitution | [`claude-charter`](https://github.com/demwick/claude-charter) (`.claude/`) | what rules & boundaries hold | "is the AI allowed to do this?" |
 | Brake | `centaur-layer` (`.centaur/`) | did the human understand | "do *you* understand this diff before accepting it?" |
 
 ### Detect & Defer
@@ -371,7 +369,7 @@ This parses the plugin manifest, smoke-tests `centaur-init`, `centaur-health`, `
 
 ## Roadmap
 
-- Exercise the plugin in real Codex sessions against throwaway apps.
+- Exercise the plugin in real Codex and Claude Code sessions against throwaway apps.
 - Improve `centaur-contract` so it can safely update the Active Contract section in place.
 - Richer diff parsing once file-path heuristics prove useful.
 - JSON output mode for agent-friendly integrations.

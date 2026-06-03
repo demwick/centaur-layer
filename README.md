@@ -215,7 +215,7 @@ bash /path/to/centaur-layer/scripts/centaur-init.sh --with-hooks /path/to/target
 - `.centaur/metrics.jsonl` — local-only usage log
 - `.gitignore` entries for runtime files (`metrics.jsonl`, `session.json`)
 
-It also probes for optional integrations (`.claude/knowledge/charter/`, `.sea/`) and reports whether they were detected. Neither is required.
+It also probes for optional integrations (`.claude/knowledge/charter/`, `.se/`) and reports whether they were detected. Neither is required.
 
 Commit the initialization separately from product changes:
 
@@ -323,16 +323,39 @@ The script never downgrades risk based on optimism — it only ever escalates wh
 
 ---
 
-## Relationship To Other Projects
+## Ecosystem: Engine, Constitution, Brake
 
-Centaur Layer is the single product you install. It borrows proven ideas from two companion projects without requiring you to install them separately:
+Centaur Layer is one of three independent, composable layers. Each works fully standalone; none requires installing the others.
 
-| Source | What Centaur uses |
-|---|---|
-| `claude-charter` | layered policy, trust boundaries, guardrails, self-audit |
-| `software-engineer-agents` | scoped execution, risk gates, verification discipline, atomic work |
+| Layer | Project | Role | Answers |
+|---|---|---|---|
+| Engine | [`software-engineer`](https://github.com/demwick/software-engineer) (`.se/`) | how work gets done | "execute the work, scoped and verified" |
+| Constitution | `claude-charter` (`.claude/`) | what rules & boundaries hold | "is the AI allowed to do this?" |
+| Brake | `centaur-layer` (`.centaur/`) | did the human understand | "do *you* understand this diff before accepting it?" |
 
-If a project already has `.claude/` charter files or `.sea/` state, Centaur reads and respects them — but they are optional integrations, not dependencies.
+### Detect & Defer
+
+Each layer is independent and self-sufficient. When one layer detects another, it **defers** that responsibility to it and does not duplicate it — but it never requires the other to be installed. Centaur runs fully on its own; if the engine or charter is present, Centaur reads and respects their state instead of re-implementing their concerns.
+
+Centaur's job in this ecosystem is to **question the human, not the machine.**
+
+### Two moments of risk (no overlap)
+
+- The **engine** warns *forward*, at planning time — before a change is made ("this change looks risky, here's what to watch").
+- **Centaur** brakes *at acceptance* — scoring the diff and checking human comprehension at the moment of accept/commit.
+
+Different moments, no collision: the engine warns while planning, Centaur brakes while accepting. Diff-risk scoring and the comprehension check at accept/commit time are Centaur's responsibility.
+
+### Two guardrail surfaces (no duplication)
+
+- **Charter** guards the **PreToolUse** surface — before the AI invokes a tool. It watches the *machine's action*.
+- **Centaur** guards the **pre-commit** surface — when a human runs `git commit` on a high-risk diff. It watches the *human's commit*.
+
+If charter is installed, Centaur keeps its own pre-commit hook: a different surface, not a repeat.
+
+### Verification: machine vs human
+
+`centaur-check` questions the **human** ("did you understand this?"), never the machine. Charter defines `/verify` and the engine's verifier runs it autonomously — those validate the *code*. Centaur stays separate in every case because its target is different: the human, not the code.
 
 ---
 

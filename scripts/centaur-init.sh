@@ -59,9 +59,9 @@ if [ -d "$TARGET_DIR/.claude/knowledge/charter" ] || [ -d "$TARGET_DIR/.claude" 
   charter="detected"
 fi
 
-sea="absent"
-if [ -d "$TARGET_DIR/.sea" ]; then
-  sea="detected"
+se="absent"
+if [ -d "$TARGET_DIR/.se" ]; then
+  se="detected"
 fi
 
 printf 'CENTAUR INIT: complete\n'
@@ -70,7 +70,7 @@ printf 'runtime_readme: %s (%s)\n' "$RUNTIME_README" "$([ "$created_readme" -eq 
 printf 'policy: %s (%s)\n' "$POLICY" "$([ "$created_policy" -eq 1 ] && printf created || printf preserved)"
 printf 'gitignore: %s\n' "$([ "$updated_gitignore" -eq 1 ] && printf updated || printf unchanged)"
 printf 'integration.claude_charter: %s\n' "$charter"
-printf 'integration.sea: %s\n' "$sea"
+printf 'integration.se: %s\n' "$se"
 hooks_state="absent"
 if [ "$with_hooks" -eq 1 ]; then
   if bash "$PLUGIN_ROOT/scripts/centaur-install-hooks.sh" "$TARGET_DIR" >/dev/null 2>&1; then
@@ -87,7 +87,7 @@ centaur_emit_metric "$TARGET_DIR" "init" \
   "contract_created=$created_contract" \
   "policy_created=$created_policy" \
   "charter=$charter" \
-  "sea=$sea" \
+  "se=$se" \
   "hooks=$hooks_state"
 
 exit 0

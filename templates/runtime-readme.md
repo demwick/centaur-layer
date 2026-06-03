@@ -21,4 +21,4 @@ Each line of `metrics.jsonl` is a single JSON object:
 
 Event types: `init`, `check`, `health`, `drill`. Summarize with `centaur-stats`.
 
-Centaur Layer treats `.claude/` and `.sea/` as optional integrations. This directory is the only required Centaur state.
+Centaur Layer treats `.claude/` and `.se/` as optional integrations. This directory is the only required Centaur state.

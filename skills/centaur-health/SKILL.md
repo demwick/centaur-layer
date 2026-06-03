@@ -24,7 +24,7 @@ Then use the script output as the evidence base. The script inspects:
 5. Review or verification command signal
 6. Dangerous-operation guardrails
 7. Git cleanliness
-8. Optional SEA state: `.sea/`
+8. Optional software-engineer state: `.se/`
 9. Centaur policy language in `CLAUDE.md`
 
 ## Scoring

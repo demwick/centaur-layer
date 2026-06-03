@@ -65,13 +65,7 @@ if [ -d ".claude/knowledge/context" ] || [ -d "docs" ] || [ -f "README.md" ]; th
   has_context=1
 fi
 
-if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
-  has_verification_command=1
-elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
-  has_verification_command=1
-elif [ -f "go.mod" ] || [ -f "Cargo.toml" ]; then
-  has_verification_command=1
-elif [ -f "Makefile" ] && grep -qE '^test:' Makefile 2>/dev/null; then
+if centaur_has_test_runner "."; then
   has_verification_command=1
 fi
 

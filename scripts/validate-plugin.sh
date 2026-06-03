@@ -174,8 +174,8 @@ grep -qF "## Required Behavior" templates/claude.md \
   || fail "CLAUDE.md template missing Required Behavior"
 ok "CLAUDE.md template has required sections"
 
-grep -qE "Centaur Layer is the single product (users|you) install" README.md \
-  || fail "README must state single-product positioning"
+grep -qF "none requires installing the others" README.md \
+  || fail "README must state standalone positioning (Detect & Defer independence)"
 grep -qiE "opt-in synthetic|synthetic drills only|synthetic-only|defect drills should be opt-in" README.md \
   || fail "README must keep defect drills opt-in"
 ok "README product guardrails present"
@@ -287,7 +287,7 @@ invalid_out="$(bash scripts/centaur-health.sh "$invalid_contract")"
 assert_contains "centaur-health detects invalid contract" "$invalid_out" "Restore required sections"
 
 integrated="$(mktemp_repo)"
-mkdir -p "$integrated/.claude/knowledge/charter" "$integrated/.claude/hooks" "$integrated/.sea"
+mkdir -p "$integrated/.claude/knowledge/charter" "$integrated/.claude/hooks" "$integrated/.se"
 printf '# Policy\n' > "$integrated/.claude/knowledge/charter/principles.md"
 printf '{"hooks":{}}\n' > "$integrated/.claude/hooks/hooks.json"
 bash scripts/centaur-init.sh "$integrated" >/dev/null
@@ -297,7 +297,7 @@ assert_contains "centaur-init detects real charter integration" "$integration_in
 assert_contains "centaur-health detects policy file" "$integration_out" "policy_file: present"
 assert_contains "centaur-health detects charter policy" "$integration_out" "charter_policy: detected"
 assert_contains "centaur-health detects guardrails" "$integration_out" "guardrails: detected"
-assert_contains "centaur-health detects sea" "$integration_out" "sea: detected"
+assert_contains "centaur-health detects se" "$integration_out" "se: detected"
 
 drill_out="$(bash scripts/centaur-drill.sh boundary)"
 assert_contains "centaur-drill is synthetic" "$drill_out" "mode: synthetic-only"

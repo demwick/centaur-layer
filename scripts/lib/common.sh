@@ -89,6 +89,10 @@ centaur_has_test_runner() {
     return 0
   elif [ -f "$dir/Makefile" ] && grep -qE '^test:' "$dir/Makefile" 2>/dev/null; then
     return 0
+  elif [ -f "$dir/test.sh" ] || [ -f "$dir/run-tests.sh" ]; then
+    return 0
+  elif find "$dir" -maxdepth 3 -name '*.bats' -type f -print -quit 2>/dev/null | grep -q .; then
+    return 0
   fi
   return 1
 }

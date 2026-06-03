@@ -30,14 +30,22 @@ load helpers/setup.bash
   centaur_assert_contains "$out" "Restore required sections"
 }
 
-@test "centaur-health detects charter, guardrails, sea integrations" {
+@test "centaur-health detects bats suite as verification command" {
   repo="$(centaur_mktemp_repo)"
-  mkdir -p "$repo/.claude/knowledge/charter" "$repo/.claude/hooks" "$repo/.sea"
+  mkdir -p "$repo/tests"
+  printf '@test "ok" { true; }\n' > "$repo/tests/smoke.bats"
+  out="$(centaur_run_script centaur-health.sh "$repo")"
+  centaur_assert_contains "$out" "verification_command: detected"
+}
+
+@test "centaur-health detects charter, guardrails, se integrations" {
+  repo="$(centaur_mktemp_repo)"
+  mkdir -p "$repo/.claude/knowledge/charter" "$repo/.claude/hooks" "$repo/.se"
   printf '# Policy\n' > "$repo/.claude/knowledge/charter/principles.md"
   printf '{"hooks":{}}\n' > "$repo/.claude/hooks/hooks.json"
   centaur_run_script centaur-init.sh "$repo" >/dev/null
   out="$(centaur_run_script centaur-health.sh "$repo")"
   centaur_assert_contains "$out" "charter_policy: detected"
   centaur_assert_contains "$out" "guardrails: detected"
-  centaur_assert_contains "$out" "sea: detected"
+  centaur_assert_contains "$out" "se: detected"
 }

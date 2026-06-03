@@ -64,6 +64,17 @@ load helpers/setup.bash
   centaur_assert_contains "$output" "dependency change without test command evidence"
 }
 
+@test "centaur-check detects bats suite as test runner" {
+  repo="$(centaur_mktemp_repo)"
+  mkdir -p "$repo/tests"
+  printf '@test "ok" { true; }\n' > "$repo/tests/smoke.bats"
+  printf '# Demo\n' > "$repo/README.md"
+  centaur_seed_commit "$repo" .
+  printf '\nMore docs.\n' >> "$repo/README.md"
+  out="$(centaur_run_script centaur-check.sh "$repo")"
+  centaur_assert_contains "$out" "test_runner: detected"
+}
+
 @test "centaur-check exit code respects CENTAUR_FAIL_ON=none" {
   repo="$(centaur_mktemp_repo)"
   printf '{"scripts":{"test":"echo ok"}}\n' > "$repo/package.json"

@@ -22,7 +22,7 @@ Initialize Centaur Layer for the current repository.
 ## Rules
 
 - Do not overwrite an existing `.centaur/contract.md` without explicit user approval.
-- Do not require `claude-charter` or `software-engineer-agents`; treat them as optional integrations.
+- Do not require `claude-charter` or `software-engineer`; treat them as optional integrations.
 - Keep initialization small. No scaffolding, no dependency installs, no git commits.
 - If the repository is dirty, preserve all existing work.
 - Commit `.centaur/contract.md`, `.centaur/README.md`, and `CLAUDE.md`; do not commit runtime metrics.

@@ -19,7 +19,7 @@ has_verification_command=0
 has_guardrails=0
 has_git=0
 git_clean=0
-has_sea=0
+has_se=0
 
 missing=()
 signals=()
@@ -65,13 +65,7 @@ if [ -d ".claude/knowledge/context" ] || [ -d "docs" ] || [ -f "README.md" ]; th
   has_context=1
 fi
 
-if [ -f "package.json" ] && grep -q '"test"' package.json 2>/dev/null; then
-  has_verification_command=1
-elif [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
-  has_verification_command=1
-elif [ -f "go.mod" ] || [ -f "Cargo.toml" ]; then
-  has_verification_command=1
-elif [ -f "Makefile" ] && grep -qE '^test:' Makefile 2>/dev/null; then
+if centaur_has_test_runner "."; then
   has_verification_command=1
 fi
 
@@ -86,8 +80,8 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   fi
 fi
 
-if [ -d ".sea" ]; then
-  has_sea=1
+if [ -d ".se" ]; then
+  has_se=1
 fi
 
 [ "$has_contract" -eq 1 ] && signals+=("contract: present") || missing+=("Run centaur-init to create .centaur/contract.md")
@@ -120,7 +114,7 @@ else
 fi
 [ "$has_git" -eq 1 ] && signals+=("git: repository") || missing+=("Initialize git before AI-assisted changes")
 [ "$git_clean" -eq 1 ] && signals+=("git_clean: yes") || signals+=("git_clean: no")
-[ "$has_sea" -eq 1 ] && signals+=("sea: detected") || signals+=("sea: absent")
+[ "$has_se" -eq 1 ] && signals+=("se: detected") || signals+=("se: absent")
 
 score=$((has_contract + valid_contract + has_policy_file + has_centaur_policy + has_context + has_verification_command + has_guardrails + has_git))
 status="RISKY"

@@ -337,6 +337,12 @@ Each layer is independent and self-sufficient. When one layer detects another, i
 
 Centaur's job in this ecosystem is to **question the human, not the machine.**
 
+> Boundaries and version compatibility are defined canonically in
+> [`ecosystem-contract.md`](https://github.com/demwick/claude-engineering-suite/blob/main/ecosystem-contract.md).
+> This section summarizes; the contract governs. To install the toolkit
+> together, see the [claude-engineering-suite](https://github.com/demwick/claude-engineering-suite)
+> marketplace.
+
 ### Two moments of risk (no overlap)
 
 - The **engine** warns *forward*, at planning time — before a change is made ("this change looks risky, here's what to watch").
